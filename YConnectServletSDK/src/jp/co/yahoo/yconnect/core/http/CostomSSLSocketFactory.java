@@ -49,7 +49,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
  */
 public class CostomSSLSocketFactory extends SSLSocketFactory {
 
-  SSLContext sslContext = SSLContext.getInstance("SSL");
+  SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 
   public CostomSSLSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException,
       KeyManagementException, KeyStoreException, UnrecoverableKeyException {
