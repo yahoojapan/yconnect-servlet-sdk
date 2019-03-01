@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import jp.co.yahoo.yconnect.core.util.YConnectLogger;
+import javax.net.ssl.SSLContext;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -42,11 +42,16 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.util.EntityUtils;
+
+import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 
 /**
  * HTTP Client Class for YConnect
@@ -167,11 +172,27 @@ public class YHttpClient {
       }
     }
 
-    httpClient = new DefaultHttpClient();
     if (urlString.startsWith("https")) {
       if (!checkSSL) {
         YConnectLogger.debug(this, "HTTPS ignore SSL Certification");
+        httpClient = new DefaultHttpClient();
         ignoreSSLCertification(httpClient);
+      } else {
+        SSLContext sslContext;
+        try {
+          sslContext = SSLContext.getInstance("TLSv1.2");
+          sslContext.init(null, null, null);
+          SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+          Scheme httpsScheme = new Scheme("https", 443, sf);
+          SchemeRegistry schemeRegistry = new SchemeRegistry();
+          schemeRegistry.register(httpsScheme);
+          ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
+          httpClient = new DefaultHttpClient(cm);
+        } catch (NoSuchAlgorithmException e1) {
+          e1.printStackTrace();
+        } catch (KeyManagementException e1) {
+          e1.printStackTrace();
+        }
       }
     }
 
@@ -245,11 +266,27 @@ public class YHttpClient {
       paramEntity.setContentType("application/x-www-form-urlencoded");
       method.setEntity(paramEntity);
 
-      httpClient = new DefaultHttpClient();
       if (urlString.startsWith("https")) {
         if (!checkSSL) {
           YConnectLogger.debug(this, "HTTPS ignore SSL Certification");
+          httpClient = new DefaultHttpClient();
           ignoreSSLCertification(httpClient);
+        } else {
+          SSLContext sslContext;
+          try {
+            sslContext = SSLContext.getInstance("TLSv1.2");
+            sslContext.init(null, null, null);
+            SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+            Scheme httpsScheme = new Scheme("https", 443, sf);
+            SchemeRegistry schemeRegistry = new SchemeRegistry();
+            schemeRegistry.register(httpsScheme);
+            ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
+            httpClient = new DefaultHttpClient(cm);
+          } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+          } catch (KeyManagementException e1) {
+            e1.printStackTrace();
+          }
         }
       }
 
