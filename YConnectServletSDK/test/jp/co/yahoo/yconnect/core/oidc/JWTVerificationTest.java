@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package jp.co.yahoo.yconnect.test;
+package jp.co.yahoo.yconnect.core.oidc;
 
 import static org.junit.Assert.*;
 
