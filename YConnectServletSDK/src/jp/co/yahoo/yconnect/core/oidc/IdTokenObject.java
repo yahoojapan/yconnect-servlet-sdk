@@ -38,33 +38,46 @@ public class IdTokenObject {
 
   private String algorithm;
 
+  private String kid;
+
   private String iss;
 
-  private String userId;
+  private String sub;
+
+  private String ppidSub;
 
   private ArrayList<String> aud;
 
   private String nonce;
 
+  private String atHash;
+
   private long exp;
 
   private long iat;
+
+  private long authTime;
 
   private String signature;
 
   public IdTokenObject() {
   }
 
-  public IdTokenObject(String type, String algorithm, String iss, String userId,
-      ArrayList<String> aud, String nonce, long exp, long iat, String signature) {
+  public IdTokenObject(String type, String algorithm, String kid, String iss, String sub, String ppidSub,
+      ArrayList<String> aud, String nonce, String atHash, long exp, long iat, long authTime,
+      String signature) {
     setType(type);
     setAlgorithm(algorithm);
+    setKid(kid);
     setIss(iss);
-    setUserId(userId);
+    setSub(sub);
+    setPpidSub(ppidSub);
     setAud(aud);
     setNonce(nonce);
+    setAtHash(atHash);
     setExp(exp);
     setIat(iat);
+    setAuthTime(authTime);
     setSignature(signature);
   }
 
@@ -84,6 +97,14 @@ public class IdTokenObject {
     this.algorithm = algorithm;
   }
 
+  public String getKid() {
+    return kid;
+  }
+
+  public void setKid(String kid) {
+    this.kid = kid;
+  }
+
   public String getIss() {
     return iss;
   }
@@ -92,12 +113,20 @@ public class IdTokenObject {
     this.iss = iss;
   }
 
-  public String getUserId() {
-    return userId;
+  public String getSub() {
+    return sub;
   }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
+  public void setSub(String sub) {
+    this.sub = sub;
+  }
+
+  public String getPpidSub() {
+    return ppidSub;
+  }
+
+  public void setPpidSub(String ppidSub) {
+    this.ppidSub = ppidSub;
   }
 
   public ArrayList<String> getAud() {
@@ -116,6 +145,14 @@ public class IdTokenObject {
     this.nonce = nonce;
   }
 
+  public String getAtHash() {
+    return atHash;
+  }
+
+  public void setAtHash(String atHash) {
+    this.atHash = atHash;
+  }
+
   public long getExp() {
     return exp;
   }
@@ -132,6 +169,14 @@ public class IdTokenObject {
     this.iat = iat;
   }
 
+  public long getAuthTime() {
+    return authTime;
+  }
+
+  public void setAuthTime(long authTime) {
+    this.authTime = authTime;
+  }
+
   public String getSignature() {
     return this.signature;
   }
@@ -142,10 +187,10 @@ public class IdTokenObject {
 
   public String toString() {
     String json =
-        "{" + "\"iss\":\"" + iss + "\"," + "\"user_id\":\"" + userId + "\"," + "\"aud\":\""
-            + aud.toString() + "\"," + "\"nonce\":\"" + nonce + "\"," + "\"exp\":" + exp + ","
-            + "\"iat\":" + iat +
-            "}";
+        "{" + "\"iss\":\"" + iss + "\"," + "\"sub\":\"" + sub + "\"," + "\"ppid_sub\":\"" + ppidSub + "\","
+            + "\"aud\":\"" + aud.toString() + "\"," + "\"nonce\":\"" + nonce + "\"," + "\"at_hash\":" + atHash + ","
+            + "\"exp\":" + exp + "," + "\"iat\":" + iat + "," + "\"auth_time\":" + authTime +
+        "}";
     return json;
   }
 

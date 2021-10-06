@@ -27,6 +27,7 @@ package jp.co.yahoo.yconnect.core.oauth2;
 
 import javax.json.JsonObject;
 
+import javax.json.JsonString;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 
 /**
@@ -62,20 +63,22 @@ abstract class AbstractTokenClient {
   protected void checkErrorResponse(int statusCode, JsonObject jsonObject) throws TokenException {
 
     if (statusCode >= 400) {
-      String error = (String) jsonObject.getString("error");
-      if (error != null) {
+        JsonString errorJsonString = jsonObject.getJsonString("error");
+      if (errorJsonString != null) {
+        String error = errorJsonString.getString();
         String errorDescription = (String) jsonObject.getString("error_description");
-        YConnectLogger.error(TAG, error + " / " + errorDescription);
-        throw new TokenException(error, errorDescription);
+        int errorCode = jsonObject.getInt("error_code");
+        YConnectLogger.error(TAG, error + " / " + errorDescription + " / " + errorCode);
+        throw new TokenException(error, errorDescription, errorCode);
       } else {
         YConnectLogger.error(TAG, "An unexpected error has occurred.");
-        throw new TokenException("An unexpected error has occurred.", "");
+        throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
       }
     } else if (statusCode == 200) {
       return;
     } else {
       YConnectLogger.error(TAG, "An unexpected error has occurred.");
-      throw new TokenException("An unexpected error has occurred.", "");
+      throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
     }
 
   }

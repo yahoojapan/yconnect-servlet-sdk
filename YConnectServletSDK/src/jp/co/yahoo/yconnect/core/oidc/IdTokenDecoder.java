@@ -29,11 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.DataFormatException;
 
-import javax.json.Json;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonString;
+import javax.json.*;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -49,8 +45,7 @@ public class IdTokenDecoder {
 
   /**
    * IdTokenDecoderコンストラクタ
-   * 
-   * @param clientSecret
+   *
    * @param idTokenString
    */
   public IdTokenDecoder(String idTokenString) {
@@ -80,6 +75,9 @@ public class IdTokenDecoder {
     JsonString algorithmString = rootHeader.getJsonString("alg");
     String algorithm = algorithmString.getString();
 
+    JsonString kidString = rootHeader.getJsonString("kid");
+    String kid = kidString.getString();
+
     // Payload
     String jsonPayload = idToken.get("payload");
 
@@ -91,12 +89,22 @@ public class IdTokenDecoder {
     JsonString issString = rootPayload.getJsonString("iss");
     String iss = issString.getString();
 
-    JsonString userIdString = rootPayload.getJsonString("user_id");
-    String userId = userIdString.getString();
+    JsonString subString = rootPayload.getJsonString("sub");
+    String sub = subString.getString();
 
-    JsonString audString = rootPayload.getJsonString("aud");
+    String ppidSub;
+    try {
+      ppidSub = rootPayload.getString("ppid_sub");
+    } catch (NullPointerException ex) {
+      ppidSub = null;
+    }
+
+    JsonArray audStringArr = rootPayload.getJsonArray("aud");
     ArrayList<String> aud = new ArrayList<String>();
-    aud.add(audString.getString());
+    for(JsonValue audValue : audStringArr) {
+      JsonString audString = (JsonString) audValue;
+      aud.add(audString.getString());
+    }
 
     JsonNumber expString = rootPayload.getJsonNumber("exp");
     int exp = expString.intValue();
@@ -104,14 +112,27 @@ public class IdTokenDecoder {
     JsonNumber iatString = rootPayload.getJsonNumber("iat");
     int iat = iatString.intValue();
 
+    JsonNumber authTimeString = rootPayload.getJsonNumber("auth_time");
+    long authTime = 0;
+    if(authTimeString != null) {
+      authTime = authTimeString.longValue();
+    }
+
     JsonString nonceString = rootPayload.getJsonString("nonce");
     String nonce = nonceString.getString();
+
+    String atHash;
+    try {
+      atHash = rootPayload.getString("at_hash");
+    } catch (NullPointerException ex) {
+      atHash = null;
+    }
 
     // signature
     String signature = idToken.get("signature");
 
     // デコードした値を格納
-    return new IdTokenObject(type, algorithm, iss, userId, aud, nonce, exp, iat, signature);
+    return new IdTokenObject(type, algorithm, kid, iss, sub, ppidSub, aud, nonce, atHash, exp, iat, authTime, signature);
   }
 
   private HashMap<String, String> splitIdToken() throws DataFormatException {

@@ -53,6 +53,8 @@ public class TokenClient extends AbstractTokenClient {
 
   private String redirectUri;
 
+  private String codeVerifier = null;
+
   private String idToken;
 
   public TokenClient(String endpointUrl, String authorizationCode, String redirectUri,
@@ -62,6 +64,14 @@ public class TokenClient extends AbstractTokenClient {
     this.redirectUri = redirectUri;
   }
 
+  public TokenClient(String endpointUrl, String authorizationCode, String redirectUri,
+                     String clientId, String clientSecret, String codeVerifier) {
+    super(endpointUrl, clientId, clientSecret);
+    this.authorizationCode = authorizationCode;
+    this.redirectUri = redirectUri;
+    this.codeVerifier = codeVerifier;
+  }
+
   @Override
   public void fetch() throws TokenException, Exception {
 
@@ -69,6 +79,9 @@ public class TokenClient extends AbstractTokenClient {
     parameters.put("grant_type", OAuth2GrantType.AUTHORIZATION_CODE);
     parameters.put("code", authorizationCode);
     parameters.put("redirect_uri", redirectUri);
+
+    if(codeVerifier != null)
+      parameters.put("code_verifier", codeVerifier);
 
     String credential = clientId + ":" + clientSecret;
     String basic = new String(Base64.encodeBase64(credential.getBytes()));
@@ -94,7 +107,7 @@ public class TokenClient extends AbstractTokenClient {
     checkErrorResponse(statusCode, jsonObject);
 
     String accessTokenString = (String) jsonObject.getString("access_token");
-    long expiresIn = Long.parseLong((String) jsonObject.getString("expires_in"));
+    long expiresIn = jsonObject.getJsonNumber("expires_in").longValue();
     String refreshToken = (String) jsonObject.getString("refresh_token");
     accessToken = new BearerToken(accessTokenString, expiresIn, refreshToken);
     idToken = (String) jsonObject.getString("id_token");

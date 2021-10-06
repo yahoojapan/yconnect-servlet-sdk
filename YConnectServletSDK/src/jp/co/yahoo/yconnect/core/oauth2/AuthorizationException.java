@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ package jp.co.yahoo.yconnect.core.oauth2;
 /**
  * OAuth 2.0 Authorization Exception.
  *
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  */
 public class AuthorizationException extends Exception {
@@ -45,6 +45,11 @@ public class AuthorizationException extends Exception {
   private String errorDescription = "";
 
   /**
+   * Error judge code.
+   */
+  private String errorCode;
+
+  /**
    * OAuth2AuthorizationException Constructor.
    */
   public AuthorizationException() {
@@ -56,11 +61,13 @@ public class AuthorizationException extends Exception {
    * 
    * @param error Error code.
    * @param message Description of error.
+   * @param errorCode Error judge code.
    */
-  public AuthorizationException(String error, String message) {
+  public AuthorizationException(String error, String message, String errorCode) {
     super(message);
     this.error = error;
     this.errorDescription = message;
+    this.errorCode = errorCode;
   }
 
   /**
@@ -103,6 +110,15 @@ public class AuthorizationException extends Exception {
    */
   public String getErrorDescription() {
     return this.errorDescription;
+  }
+
+  /**
+   * Get error judge code.
+   *
+   * @return error judge code of type String.
+   */
+  public String getErrorCode() {
+    return this.errorCode;
   }
 
   /**

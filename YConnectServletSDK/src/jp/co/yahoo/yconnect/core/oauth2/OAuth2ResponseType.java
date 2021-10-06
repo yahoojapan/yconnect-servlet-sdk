@@ -37,9 +37,4 @@ public class OAuth2ResponseType {
    */
   public static final String CODE = "code";
 
-  /**
-   * レスポンスタイプ: code id_token
-   */
-  public static final String CODE_IDTOKEN = "code id_token";
-
 }

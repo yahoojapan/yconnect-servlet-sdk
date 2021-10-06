@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,14 +29,16 @@ import javax.json.JsonObject;
 /**
  * UserInfo Object Class
  *
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  */
 public class UserInfoObject {
 
   private JsonObject jsonObject;
 
-  private String userId = "";
+  private String sub = "";
+
+  private String ppidSub = "";
 
   private String locale = "";
 
@@ -60,7 +62,13 @@ public class UserInfoObject {
 
   private String gender = "";
 
-  private String birthday = "";
+  private String zoneinfo = "";
+
+  private String birthdate = "";
+
+  private String nickname = "";
+
+  private String picture = "";
 
   private String addressCountry = "";
 
@@ -70,20 +78,30 @@ public class UserInfoObject {
 
   private String addressLocality = "";
 
+  private String addressFormatted = "";
+
   public UserInfoObject() {
 
   }
 
-  public UserInfoObject(String userId) {
-    setUserId(userId);
+  public UserInfoObject(String sub) {
+    setSub(sub);
   }
 
-  public String getUserId() {
-    return userId;
+  public String getSub() {
+    return sub;
   }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
+  public void setSub(String sub) {
+    this.sub = sub;
+  }
+
+  public String getPpidSub() {
+    return ppidSub;
+  }
+
+  public void setPpidSub(String ppidSub) {
+    this.ppidSub = ppidSub;
   }
 
   public String getLocale() {
@@ -174,12 +192,36 @@ public class UserInfoObject {
     this.gender = gender;
   }
 
-  public String getBirthday() {
-    return birthday;
+  public String getZoneinfo() {
+    return zoneinfo;
   }
 
-  public void setBirthday(String birthday) {
-    this.birthday = birthday;
+  public void setZoneinfo(String zoneinfo) {
+    this.zoneinfo = zoneinfo;
+  }
+
+  public String getBirthdate() {
+    return birthdate;
+  }
+
+  public void setBirthdate(String birthdate) {
+    this.birthdate = birthdate;
+  }
+
+  public String getNickname() {
+    return nickname;
+  }
+
+  public void setNickname(String nickname) {
+    this.nickname = nickname;
+  }
+
+  public String getPicture() {
+    return picture;
+  }
+
+  public void setPicture(String picture) {
+    this.picture = picture;
   }
 
   public String getAddressCountry() {
@@ -214,13 +256,27 @@ public class UserInfoObject {
     this.addressLocality = addressLocality;
   }
 
+  public String getAddressFormatted() {
+    return addressFormatted;
+  }
+
+  public void setAddressFormatted(String addressFormatted) {
+    this.addressFormatted = addressFormatted;
+  }
+
   public void setJsonObject(JsonObject jsonObject) {
     this.jsonObject = jsonObject;
   }
 
-  public String getAdditionalValue(String key) {
+  public String getAdditionalValue(String keyStr) {
     try {
-      return this.jsonObject.getString(key);
+      String[] keys = keyStr.split("/");
+
+      JsonObject jsonObject = this.jsonObject;
+      for(int i = 0; i < keys.length - 1; i++) {
+        jsonObject = jsonObject.getJsonObject(keys[i]);
+      }
+      return jsonObject.getString(keys[keys.length - 1]);
     } catch (Exception e) {
       return "";
     }
@@ -232,17 +288,18 @@ public class UserInfoObject {
 
   public String toString() {
     String json =
-        "{" + "\"user_id\":\"" + userId + "\"," + "\"locale\":\"" + locale + "\"," + "\"name\":\""
-            + name + "\"," + "\"given_name\":\"" + givenName + "\","
+        "{" + "\"sub\":\"" + sub + "\"," + "\"ppid_sub\":\"" + ppidSub + "\"," + "\"locale\":\"" + locale + "\","
+            + "\"name\":\"" + name + "\"," + "\"given_name\":\"" + givenName + "\","
             + "\"given_name#ja-Kana-JP\":\"" + givenNameJaKanaJp + "\","
             + "\"given_name#ja-Hani-JP\":\"" + givenNameJaHaniJp + "\"," + "\"family_name\":\""
             + familyName + "\"," + "\"family_name#ja-Kana-JP\":\"" + familyNameJaKanaJp + "\","
             + "\"family_name#ja-Hani-JP\":\"" + familyNameJaHaniJp + "\"," + "\"email\":\"" + email
-            + "\"," + "\"email_verified\":\"" + emailVerified + "\"," + "\"gender\":" + gender
-            + "," + "\"birthday\":\"" + birthday + "\"," + "\"address/country\":\""
+            + "\"," + "\"email_verified\":\"" + emailVerified + "\"," + "\"gender\":" + gender + ","
+            + "\"zoneinfo\":\"" + zoneinfo + "\"," + "\"birthdate\":\"" + birthdate + "\","
+            + "\"nickname\":\"" + nickname + "\"," + "\"picture\":\"" + picture + "\"," + "\"address/country\":\""
             + addressCountry + "\"," + "\"address/postal_code\":\"" + addressPostalCode + "\","
             + "\"address/region\":\"" + addressRegion + "\"," + "\"address/locality\":\""
-            + addressLocality + "\"" + "}";
+            + addressLocality + "\"," + "\"address/formatted\":\"" + addressFormatted + "\"" + "}";
     return json;
   }
 

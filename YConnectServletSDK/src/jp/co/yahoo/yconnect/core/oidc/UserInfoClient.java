@@ -24,15 +24,14 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import java.io.StringReader;
+import jp.co.yahoo.yconnect.core.api.ApiClient;
+import jp.co.yahoo.yconnect.core.api.ApiClientException;
+import jp.co.yahoo.yconnect.core.oauth2.BearerToken;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-
-import jp.co.yahoo.yconnect.core.api.ApiClient;
-import jp.co.yahoo.yconnect.core.api.ApiClientException;
-import jp.co.yahoo.yconnect.core.oauth2.BearerToken;
+import java.io.StringReader;
 
 /**
  * UserInfo Client Class
@@ -71,8 +70,11 @@ public class UserInfoClient extends ApiClient {
     jsonReader.close();
     JsonObject rootJsonObject = (JsonObject) rootObject;
 
-    if (rootJsonObject.containsKey("user_id")) {
-      userInfoObject = new UserInfoObject((String) rootJsonObject.getString("user_id"));
+    if (rootJsonObject.containsKey("sub")) {
+      userInfoObject = new UserInfoObject((String) rootJsonObject.getString("sub"));
+    }
+    if (rootJsonObject.containsKey("ppid_sub")) {
+      userInfoObject.setPpidSub((String) rootJsonObject.getString("ppid_sub"));
     }
     if (rootJsonObject.containsKey("locale")) {
       userInfoObject.setLocale((String) rootJsonObject.getString("locale"));
@@ -116,20 +118,44 @@ public class UserInfoClient extends ApiClient {
     if (rootJsonObject.containsKey("gender")) {
       userInfoObject.setGender((String) rootJsonObject.getString("gender"));
     }
-    if (rootJsonObject.containsKey("birthday")) {
-      userInfoObject.setBirthday((String) rootJsonObject.getString("birthday"));
+    if (rootJsonObject.containsKey("zoneinfo")) {
+      userInfoObject.setZoneinfo((String) rootJsonObject.getString("zoneinfo"));
+    }
+    if (rootJsonObject.containsKey("birthdate")) {
+      userInfoObject.setBirthdate((String) rootJsonObject.getString("birthdate"));
+    }
+    if (rootJsonObject.containsKey("nickname")) {
+      userInfoObject.setNickname((String) rootJsonObject.getString("nickname"));
+    }
+    if (rootJsonObject.containsKey("picture")) {
+      userInfoObject.setPicture((String) rootJsonObject.getString("picture"));
     }
     if (rootJsonObject.containsKey("address")) {
       if (rootJsonObject.get("address") != null) {
         JsonObject addressJSONObject = (JsonObject) rootJsonObject.get("address");
-        userInfoObject.setAddressCountry((String) addressJSONObject.getString("country"));
-        userInfoObject.setAddressPostalCode((String) addressJSONObject.getString("postal_code"));
-        userInfoObject.setAddressRegion((String) addressJSONObject.getString("region"));
-        userInfoObject.setAddressLocality((String) addressJSONObject.getString("locality"));
+        addressParser(addressJSONObject);
       }
     }
 
     userInfoObject.setJsonObject(rootJsonObject);
+  }
+
+  private void addressParser(JsonObject addressJSONObject) {
+    if (addressJSONObject.containsKey("country")) {
+      userInfoObject.setAddressCountry((String) addressJSONObject.getString("country"));
+    }
+    if(addressJSONObject.containsKey("postal_code")) {
+      userInfoObject.setAddressPostalCode((String) addressJSONObject.getString("postal_code"));
+    }
+    if(addressJSONObject.containsKey("region")) {
+      userInfoObject.setAddressRegion((String) addressJSONObject.getString("region"));
+    }
+    if(addressJSONObject.containsKey("locality")) {
+      userInfoObject.setAddressLocality((String) addressJSONObject.getString("locality"));
+    }
+    if(addressJSONObject.containsKey("formatted")) {
+      userInfoObject.setAddressFormatted((String) addressJSONObject.getString("formatted"));
+    }
   }
 
   public UserInfoObject getUserInfoObject() {

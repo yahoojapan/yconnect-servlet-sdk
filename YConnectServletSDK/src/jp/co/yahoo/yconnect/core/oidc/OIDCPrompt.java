@@ -38,6 +38,11 @@ public class OIDCPrompt {
   public static final String LOGIN = "login";
 
   /**
+   * Prompt: select_account
+   */
+  public static final String SELECT_ACCOUNT = "select_account";
+
+  /**
    * Prompt: consent
    */
   public static final String CONSENT = "consent";

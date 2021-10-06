@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,16 +28,16 @@ import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 
 /**
- * Explicit Callback URI Parser Class
+ * Client Callback URI Parser Class
  *
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  */
-public class ExplicitCallbackUriParser {
+public class ClientCallbackUriParser {
 
   private HttpParameters parameters = new HttpParameters();
 
-  public ExplicitCallbackUriParser(String request) throws AuthorizationException {
+  public ClientCallbackUriParser(String request) throws AuthorizationException {
     parseUri(request);
   }
 
@@ -61,7 +61,7 @@ public class ExplicitCallbackUriParser {
       }
     } else {
       YConnectLogger.error(this, "Not Match State.");
-      throw new AuthorizationException("Not Match State.", "");
+      throw new AuthorizationException("Not Match State.", "", "");
     }
   }
 
@@ -88,8 +88,10 @@ public class ExplicitCallbackUriParser {
     if (parameters.get("error") != null) {
       String error = parameters.get("error");
       String errorDescription = parameters.get("error_description");
-      YConnectLogger.error(this, "error=" + error + ", error_description=" + errorDescription);
-      throw new AuthorizationException(error, errorDescription);
+      String errorCode = parameters.get("error_code");
+      YConnectLogger.error(this, "error=" + error + ", error_description=" + errorDescription
+              + ", error_code=" + errorCode);
+      throw new AuthorizationException(error, errorDescription, errorCode);
     }
     YConnectLogger.debug(this, "Finished Parsing: " + parameters.toString());
   }

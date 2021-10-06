@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import jp.co.yahoo.yconnect.YConnectExplicit;
+import jp.co.yahoo.yconnect.YConnectClient;
 import jp.co.yahoo.yconnect.core.api.ApiClientException;
 import jp.co.yahoo.yconnect.core.oauth2.AuthorizationException;
 import jp.co.yahoo.yconnect.core.oauth2.OAuth2ResponseType;
@@ -79,9 +79,9 @@ public class YConnectServlet extends HttpServlet {
     // state, nonceにランダムな値を初期化
     String state = "5Ye65oi744KKT0vjgafjgZnjgojjgIHlhYjovKnjg4M"; // リクエストとコールバック間の検証用のランダムな文字列を指定してください
     String nonce = "SUTljqjjga8uLi7jgrrjg4Plj4vjgaDjgoc"; // リプレイアタック対策のランダムな文字列を指定してください
-
+    String plainCodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM._~"; //認可コード横取り攻撃対策文字列を指定してください
     // YConnectインスタンス生成
-    YConnectExplicit yconnect = new YConnectExplicit();
+    YConnectClient yconnect = new YConnectClient();
 
     // SSL証明書チェック無効 ※通信テスト用のメソッドなのでサービス時にはコメントアウト推奨
     // YConnectExplicit.disableSSLCheck();
@@ -109,7 +109,7 @@ public class YConnectServlet extends HttpServlet {
          ***********************************************/
 
         // Tokenエンドポイントにリクエスト
-        yconnect.requestToken(code, clientId, clientSecret, redirectUri);
+        yconnect.requestToken(code, clientId, clientSecret, redirectUri, plainCodeChallenge);
         // アクセストークン, リフレッシュトークン, IDトークンを取得
         String accessTokenString = yconnect.getAccessToken();
         long expiration = yconnect.getAccessTokenExpiration();
@@ -126,7 +126,7 @@ public class YConnectServlet extends HttpServlet {
          ************************/
 
         // IDトークンの検証
-        if (yconnect.verifyIdToken(nonce, clientId, clientSecret, idTokenString)) {
+        if (yconnect.verifyIdToken(nonce, clientId, idTokenString)) {
           // IDトークンの復号
           IdTokenObject idTokenObject = yconnect.decodeIdToken(idTokenString);
           sb.append("<h1>ID Token</h1>");
@@ -149,7 +149,7 @@ public class YConnectServlet extends HttpServlet {
         UserInfoObject userInfoObject = yconnect.getUserInfoObject();
         sb.append("<h1>UserInfo Request</h1>");
         sb.append("UserInfo: <pre>" + userInfoObject + "</pre><br/>");
-        sb.append("user_id: <pre>" + userInfoObject.getAdditionalValue("user_id") + "</pre><br/>");
+        sb.append("sub: <pre>" + userInfoObject.getAdditionalValue("sub") + "</pre><br/>");
         // JsonObjectから任意のkeyを指定して値を取得する方法
         // String userId = userInfoObject.getJsonObject().getString("user_id");
         /*************************************************
@@ -176,13 +176,15 @@ public class YConnectServlet extends HttpServlet {
          ****************************************************************/
 
         // 各パラメーター初期化
-        String responseType = OAuth2ResponseType.CODE_IDTOKEN;
+        String responseType = OAuth2ResponseType.CODE;
         String display = OIDCDisplay.DEFAULT;
         String[] prompt = {OIDCPrompt.DEFAULT};
         String[] scope = {OIDCScope.OPENID, OIDCScope.PROFILE, OIDCScope.EMAIL, OIDCScope.ADDRESS};
 
-        // 各パラメーターを設定
-        yconnect.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
+        // 各パラメーターを設定（推奨）
+        yconnect.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce, 3600L, plainCodeChallenge);
+        // (Option) v2.1.2時と同様の設定も可能です
+        // yconnect.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
         URI uri = yconnect.generateAuthorizationUri();
 
         // Authorizationエンドポイントにリダイレクト(同意画面を表示)

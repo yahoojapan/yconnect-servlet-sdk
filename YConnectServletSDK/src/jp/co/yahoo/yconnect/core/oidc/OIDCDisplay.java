@@ -35,7 +35,7 @@ public class OIDCDisplay {
   /**
    * Display: Auto-detect
    */
-  public static final String DEFAULT = "";
+  public static final String DEFAULT = "page";
 
   /**
    * Display: page
@@ -46,5 +46,15 @@ public class OIDCDisplay {
    * Display: touch
    */
   public static final String SMART_PHONE = "touch";
+
+  /**
+   * Display: popup
+   */
+  public static final String POPUP = "popup";
+
+  /**
+   * Display: inapp
+   */
+  public static final String NATIVE_APP = "inapp";
 
 }

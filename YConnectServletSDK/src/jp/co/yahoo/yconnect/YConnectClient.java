@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,46 +25,40 @@
 package jp.co.yahoo.yconnect;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.zip.DataFormatException;
 
 import jp.co.yahoo.yconnect.core.api.ApiClient;
 import jp.co.yahoo.yconnect.core.api.ApiClientException;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
-import jp.co.yahoo.yconnect.core.oauth2.AuthorizationException;
-import jp.co.yahoo.yconnect.core.oauth2.AuthorizationRequestClient;
-import jp.co.yahoo.yconnect.core.oauth2.BearerToken;
-import jp.co.yahoo.yconnect.core.oauth2.ExplicitCallbackUriParser;
-import jp.co.yahoo.yconnect.core.oauth2.OAuth2ResponseType;
-import jp.co.yahoo.yconnect.core.oauth2.RefreshTokenClient;
-import jp.co.yahoo.yconnect.core.oauth2.TokenClient;
-import jp.co.yahoo.yconnect.core.oauth2.TokenException;
-import jp.co.yahoo.yconnect.core.oidc.IdTokenDecoder;
-import jp.co.yahoo.yconnect.core.oidc.IdTokenObject;
-import jp.co.yahoo.yconnect.core.oidc.IdTokenVerification;
-import jp.co.yahoo.yconnect.core.oidc.OIDCDisplay;
-import jp.co.yahoo.yconnect.core.oidc.OIDCPrompt;
-import jp.co.yahoo.yconnect.core.oidc.UserInfoClient;
-import jp.co.yahoo.yconnect.core.oidc.UserInfoObject;
+import jp.co.yahoo.yconnect.core.oauth2.*;
+import jp.co.yahoo.yconnect.core.oauth2.ClientCallbackUriParser;
+import jp.co.yahoo.yconnect.core.oidc.*;
 import jp.co.yahoo.yconnect.core.util.StringUtil;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
- * YConnecct Explicit(Authorization Code Flow) Class
+ * YConnect Client(Authorization Code Flow) Class
  *
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  */
-public class YConnectExplicit {
+public class YConnectClient {
 
   private final static String AUTHORIZATION_ENDPOINT_URL =
-      "https://auth.login.yahoo.co.jp/yconnect/v1/authorization";
+          "https://auth.login.yahoo.co.jp/yconnect/v2/authorization";
 
   private final static String TOKEN_ENDPOINT_URL =
-      "https://auth.login.yahoo.co.jp/yconnect/v1/token";
+          "https://auth.login.yahoo.co.jp/yconnect/v2/token";
 
   private final static String USERINFO_ENDPOINT_URL =
-      "https://userinfo.yahooapis.jp/yconnect/v1/attribute";
+          "https://userinfo.yahooapis.jp/yconnect/v2/attribute";
 
-  private final static String ISSUER = "https://auth.login.yahoo.co.jp";
+  private final static String PUBLIC_KEYS_ENDPOINT_URL =
+          "https://auth.login.yahoo.co.jp/yconnect/v2/public-keys";
+
+  private final static String ISSUER = "https://auth.login.yahoo.co.jp/yconnect/v2";
 
   // Default Parameters
   private String responseType = OAuth2ResponseType.CODE;
@@ -72,9 +66,11 @@ public class YConnectExplicit {
   private String prompt = OIDCPrompt.LOGIN;
   private String scope = null;
   private String nonce = null;
+  private Long maxAge = null;
+  private String plainCodeChallenge = null;
 
   private AuthorizationRequestClient requestClient;
-  private ExplicitCallbackUriParser responsePaser;
+  private ClientCallbackUriParser responseParser;
   private String code;
   private BearerToken accessToken;
   private String idToken;
@@ -84,7 +80,7 @@ public class YConnectExplicit {
   /**
    * YConnectExplicitのコンストラクタ。
    */
-  public YConnectExplicit() {}
+  public YConnectClient() {}
 
   /**
    * 初期化メソッド。 各パラメーターを設定する。
@@ -124,6 +120,28 @@ public class YConnectExplicit {
   }
 
   /**
+   * 初期化メソッド。 各パラメーターを設定する。
+   *
+   * @param clientId アプリケーションID
+   * @param redirectUri リダイレクトURL
+   * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
+   * @param responseType レスポンスタイプ（response_type）
+   * @param display テンプレートの種類（display）
+   * @param prompt クライアントが強制させたいアクション（prompt）
+   * @param scope UserInfo APIから取得できる属性情報の指定（scope）
+   * @param nonce リプレイアタック対策のランダムな文字列を指定してください
+   * @param maxAge 最大認証経過時間を指定してください
+   * @param plainCodeChallenge ハッシュ化前の認可コード横取り攻撃対策文字列を指定してください
+   */
+  public void init(String clientId, String redirectUri, String state, String responseType,
+                   String display, String[] prompt, String[] scope, String nonce,
+                   Long maxAge, String plainCodeChallenge) {
+    this.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
+    this.maxAge = maxAge;
+    this.plainCodeChallenge = plainCodeChallenge;
+  }
+
+  /**
    * AuthorizationエンドポイントへのリクエストURIを生成する。
    * 
    * @return リクエストURI
@@ -136,6 +154,12 @@ public class YConnectExplicit {
       requestClient.setParameter("scope", scope);
     if (nonce != null)
       requestClient.setParameter("nonce", nonce);
+    if (maxAge != null)
+      requestClient.setParameter("max_age", maxAge.toString());
+    if (plainCodeChallenge != null) {
+      requestClient.setParameter("code_challenge", generateCodeChallenge(plainCodeChallenge));
+      requestClient.setParameter("code_challenge_method",  "S256");
+    }
     return requestClient.generateAuthorizationUri();
   }
 
@@ -147,8 +171,8 @@ public class YConnectExplicit {
    * @throws AuthorizationException
    */
   public boolean hasAuthorizationCode(String query) throws AuthorizationException {
-    responsePaser = new ExplicitCallbackUriParser(query);
-    return responsePaser.hasAuthorizationCode();
+    responseParser = new ClientCallbackUriParser(query);
+    return responseParser.hasAuthorizationCode();
   }
 
   /**
@@ -174,7 +198,7 @@ public class YConnectExplicit {
    * @throws AuthorizationException
    */
   public String getAuthorizationCode(String state) throws AuthorizationException {
-    code = responsePaser.getAuthorizationCode(state);
+    code = responseParser.getAuthorizationCode(state);
     return code;
   }
 
@@ -192,6 +216,26 @@ public class YConnectExplicit {
       throws TokenException, Exception {
     TokenClient tokenClient =
         new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret);
+    tokenClient.fetch();
+    accessToken = tokenClient.getAccessToken();
+    idToken = tokenClient.getIdToken();
+  }
+
+  /**
+   * Tokenエンドポイントにリクエストする。
+   *
+   * @param code 認可コード
+   * @param clientId アプリケーションID
+   * @param clientSecret シークレット
+   * @param redirectUri リダイレクトURL
+   * @param codeVerifier 認可コード横取り攻撃対策用パラメータ
+   * @throws TokenException
+   * @throws Exception
+   */
+  public void requestToken(String code, String clientId, String clientSecret, String redirectUri,
+                           String codeVerifier) throws TokenException, Exception {
+    TokenClient tokenClient =
+        new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret, codeVerifier);
     tokenClient.fetch();
     accessToken = tokenClient.getAccessToken();
     idToken = tokenClient.getIdToken();
@@ -250,18 +294,21 @@ public class YConnectExplicit {
    * 
    * @param nonce Authorizationリクエスト時に指定したnonce値
    * @param clientId アプリケーションID
-   * @param clientSecret アプリケーションIDのシークレット
    * @param idTokenString 取得したIDトークンの文字列
    * @return IDトークン検証が正しい場合にはtrue, それ以外の場合にはfalseを返却
    * @throws DataFormatException 無効なIDトークンが指定された場合に発生します
    */
-  public boolean verifyIdToken(String nonce, String clientId, String clientSecret,
-      String idTokenString) throws DataFormatException {
+  public boolean verifyIdToken(String nonce, String clientId, String idTokenString)
+          throws DataFormatException, ApiClientException {
+    PublicKeysClient publicKeysClient = new PublicKeysClient();
+    publicKeysClient.fetchResource(PUBLIC_KEYS_ENDPOINT_URL);
+    PublicKeysObject publicKeysObject = publicKeysClient.getPublicKeysObject();
+
     IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
     IdTokenObject idTokenObject = idTokenDecoder.decode();
     this.idTokenVerification = new IdTokenVerification();
-    return this.idTokenVerification.check(ISSUER, nonce, clientId, idTokenObject, clientSecret,
-        idTokenString);
+    return this.idTokenVerification.check(ISSUER, nonce, clientId, idTokenObject, publicKeysObject,
+        idTokenString, accessToken.getAccessToken());
   }
 
   /**
@@ -380,4 +427,14 @@ public class YConnectExplicit {
     YHttpClient.enableSSLCheck();
   }
 
+  /**
+   * codeChallengeを生成する。
+   *
+   * @param plainCodeChallenge ハッシュ化前のcodeChallenge
+   * @return SHA-256でハッシュ化されたcode challenge
+   */
+  private String generateCodeChallenge(String plainCodeChallenge) {
+    byte[] hashBytes = DigestUtils.sha256(plainCodeChallenge.getBytes(StandardCharsets.UTF_8));
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(hashBytes);
+  }
 }

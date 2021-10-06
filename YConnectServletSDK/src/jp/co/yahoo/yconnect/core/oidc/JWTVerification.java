@@ -24,17 +24,10 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import jp.co.yahoo.yconnect.core.oidc.IdTokenDecoder;
-
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.util.Base64;
 import java.util.zip.DataFormatException;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * JSON Web Token 検証クラス
@@ -46,18 +39,16 @@ public class JWTVerification {
 
   private String idTokenString;
 
-  private String dataPart;
-
-  private String clientSecret;
+  private PublicKey publicKey;
 
   /**
    * JWTVerificationのコンストラクタ
    * 
-   * @param clientSecret
+   * @param publicKey
    * @param idTokenString
    */
-  public JWTVerification(String clientSecret, String idTokenString) {
-    this.clientSecret = clientSecret;
+  public JWTVerification(PublicKey publicKey, String idTokenString) {
+    this.publicKey = publicKey;
     this.idTokenString = idTokenString;
   }
 
@@ -67,58 +58,24 @@ public class JWTVerification {
    * @return
    * @throws DataFormatException
    */
-  public boolean verifyJWT() throws DataFormatException {
+  public boolean verifyJWT() throws DataFormatException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
     IdTokenDecoder idTokenDecoder = new IdTokenDecoder(this.idTokenString);
     IdTokenObject idTokenObject = idTokenDecoder.decode();
-    return idTokenObject.getSignature().equals(generateSignature());
+
+    Signature verifier = getVerifier();
+    byte[] signatureBytes = Base64.getUrlDecoder().decode(idTokenObject.getSignature());
+
+    return verifier.verify(signatureBytes);
   }
 
-  /**
-   * HMAC-SHA256の暗号化のチェックを行なうためのシグネチャを生成
-   * 
-   * @return 生成したシグネチャ
-   */
-  private String generateSignature() {
-    // macのインスタンスを生成する
-    Mac sha256_HMAC = null;
-    try {
-      sha256_HMAC = Mac.getInstance("HmacSHA256");
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    }
+  private Signature getVerifier() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    String[] idTokenArray = idTokenString.split("\\.");
+    String dataPart = idTokenArray[0] + "." + idTokenArray[1];
+    Signature signature = Signature.getInstance("SHA256withRSA");
+    signature.initVerify(publicKey);
+    signature.update(dataPart.getBytes(StandardCharsets.UTF_8));
 
-    // secret_keyの作成
-    SecretKeySpec secret_key = null;
-    try {
-      secret_key = new SecretKeySpec(this.clientSecret.getBytes("UTF-8"), "HmacSHA256");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    // macの初期化
-    try {
-      sha256_HMAC.init(secret_key);
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-    }
-
-    String[] idTokenArray = this.idTokenString.split("\\.");
-    this.dataPart = idTokenArray[0] + "." + idTokenArray[1];
-
-    String hash = null;
-    try {
-      hash = Base64.encodeBase64String(sha256_HMAC.doFinal(this.dataPart.getBytes("UTF-8")));
-    } catch (IllegalStateException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-
-    // URLSafeなBase64に変換
-    hash = hash.replace("=", "");
-    hash = hash.replace("+", "-");
-    hash = hash.replace("/", "_");
-
-    return hash;
+    return signature;
   }
 
 }

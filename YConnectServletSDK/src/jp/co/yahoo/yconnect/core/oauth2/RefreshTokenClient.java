@@ -89,7 +89,7 @@ public class RefreshTokenClient extends AbstractTokenClient {
     checkErrorResponse(statusCode, jsonObject);
 
     String accessTokenString = (String) jsonObject.getString("access_token");
-    long expiresIn = Long.parseLong((String) jsonObject.getString("expires_in"));
+    long expiresIn = jsonObject.getJsonNumber("expires_in").longValue();
     accessToken = new BearerToken(accessTokenString, expiresIn, refreshToken);
 
   }
