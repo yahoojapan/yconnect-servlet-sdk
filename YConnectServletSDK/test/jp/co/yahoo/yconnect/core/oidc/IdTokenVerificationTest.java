@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,112 +24,182 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import static org.junit.Assert.*;
-
-import java.util.zip.DataFormatException;
-
-import jp.co.yahoo.yconnect.core.oidc.IdTokenDecoder;
-import jp.co.yahoo.yconnect.core.oidc.IdTokenObject;
-import jp.co.yahoo.yconnect.core.oidc.IdTokenVerification;
-
+import jp.co.yahoo.yconnect.util.IdTokenGenerator;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.junit.Before;
 import org.junit.Test;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+
+import static org.junit.Assert.*;
 
 /**
  * IdTokenVerification Test Case
  *
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  */
 public class IdTokenVerificationTest {
 
   // 正常系パラメーター値
-  String iss = "https://auth.login.yahoo.co.jp";
-  long exp = (long) 1411647139;
-  long iat = (long) 1410437540;
+  String iss = "https://auth.login.yahoo.co.jp/yconnect/v2";
+  String sub = "USER_PPID";
+  long exp = 1411647139;
+  long iat = 1410437540;
+  long authTime = 1410437541;
   String nonce = "abcdefg";
-  String issuer = "https://auth.login.yahoo.co.jp";
-  String authNonce = "abcdefg";
+  String atHash;
   String clientId = "APPLICATION_ID";
-  String clientSecret = "SECRET_KEY";
+  String type = "JWT";
+  String algorithm = "RS256";
+  String kid = "sample_kid";
 
-  // 正常系入力IDトークン文字列
-  String idTokenString =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.OLUFkAlp4BwwAxniMzXyoR5ZFC3Q5HCNHRvR6qDf-zY";
+  String accessToken = "access_token";
 
-  @Test
-  public void testCheckStringStringStringIdTokenObject() throws DataFormatException {
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
-    IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertTrue(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+  IdTokenObject idTokenObject = new IdTokenObject();
+
+  @Before
+  public void beforeEach() throws UnsupportedEncodingException {
+    idTokenObject.setType(type);
+    idTokenObject.setAlgorithm(algorithm);
+    idTokenObject.setKid(kid);
+    idTokenObject.setSub(sub);
+    idTokenObject.setIss(iss);
+    idTokenObject.setAud(new ArrayList<>(Collections.singletonList(clientId)));
+    idTokenObject.setExp(exp);
+    idTokenObject.setIat(iat);
+    idTokenObject.setAuthTime(authTime);
+    idTokenObject.setNonce(nonce);
+    atHash = generateHash(accessToken);
+    idTokenObject.setAtHash(atHash);
   }
 
   @Test
-  public void testGetCheckErrorMessageType() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJJTlZBTElEX0pXVCIsImFsZyI6IkhTMjU2In0.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.2SQProJa2GhsLTtSpdJz1FT0gnlTIvHTvcijxovxucY";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testCheckReturnTrue() throws Exception {
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertTrue(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+        idTokenString, accessToken));
+  }
+
+  @Test
+  public void testCheckReturnTrueWithoutAtHash() throws Exception {
+    idTokenObject.setAtHash(null);
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
+    IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertTrue(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, "INVALID_ACCESS_TOKEN"));
+  }
+
+  @Test
+  public void testGetCheckErrorMessageAccessToken() throws Exception {
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
+    IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, "INVALID_ACCESS_TOKEN"));
+    assertEquals(idTokenVer.getErrorMessage(), "invalid_at_hash");
+    assertEquals(idTokenVer.getErrorDescriptionMessage(),
+            "The at_hash did not match. (" + atHash + ")");
+  }
+
+  @Test
+  public void testGetCheckErrorMessageType() throws Exception {
+    idTokenObject.setType("INVALID_JWT");
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
+    IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+        idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "invalid_type");
     assertEquals(idTokenVer.getErrorDescriptionMessage(), "The type is not JWT. (INVALID_JWT)");
   }
 
   @Test
-  public void testGetCheckErrorMessageAlgorithm() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJJTlZBTElEX0FMR09SSVRITSJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.tjWFVLEeA-RQd6cu1jmgTFYHX0Fv_U4fm3YqP3coLC0";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testGetCheckErrorMessageAlgorithm() throws Exception {
+    idTokenObject.setAlgorithm("INVALID_ALGORITHM");
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "invalid_algorithm");
     assertEquals(idTokenVer.getErrorDescriptionMessage(),
-        "The algorithm is not HmacSHA256. (INVALID_ALGORITHM)");
-
+        "The algorithm is not RSA-SHA256. (INVALID_ALGORITHM)");
   }
 
   @Test
-  public void testGetCheckErrorMessageIssuer() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvZXhhbXBsZS5jb20iLCJ1c2VyX2lkIjoiVVNFUl9JRCIsImF1ZCI6IkFQUExJQ0FUSU9OX0lEIiwiZXhwIjoxNDExNjQ3MTM5LCJpYXQiOjE0MTA0Mzc1NDAsIm5vbmNlIjoiYWJjZGVmZyJ9.xYo7dQJegGusaAHo0MbtSyxTYsBYe8N2DizbESK3pjA";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testGetCheckErrorMessageIss() throws Exception {
+    idTokenObject.setIss("https://example.com");
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "invalid_issuer");
     assertEquals(idTokenVer.getErrorDescriptionMessage(), "The issuer did not match. ("
         + "https://example.com" + ")");
   }
 
   @Test
-  public void testGetCheckErrorMessageNonce() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJJTlZBTElEX05PTkNFIn0.ZPnj8nUYnrLKSMbDjV9ZynDgwoOft4QUU064xKwzUvs";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testGetCheckErrorMessageNonce() throws Exception {
+    idTokenObject.setNonce("INVALID_NONCE");
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "not_match_nonce");
     assertEquals(idTokenVer.getErrorDescriptionMessage(),
         "The nonce did not match. (INVALID_NONCE)");
   }
 
   @Test
-  public void testGetCheckErrorMessageAudience() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiSU5WQUxJRF9BUFBMSUNBVElPTl9JRCIsImV4cCI6MTQxMTY0NzEzOSwiaWF0IjoxNDEwNDM3NTQwLCJub25jZSI6ImFiY2RlZmcifQ.8O_O87NP0r1T8V6TpF0-3KseGPzK2176NDYP1XCmmOU";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testGetCheckErrorMessageAudience() throws Exception {
+    idTokenObject.setAud(new ArrayList<>(Collections.singletonList("INVALID_APPLICATION_ID")));
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "invalid_audience");
     assertEquals(idTokenVer.getErrorDescriptionMessage(),
         "The client id did not match. (INVALID_APPLICATION_ID)");
@@ -137,43 +207,84 @@ public class IdTokenVerificationTest {
   }
 
   @Test
-  public void testGetCheckErrorMessageExpired() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjEzMTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.UPZxsM_IEXBXe-pf84PqcLnyEcbYpX2VAI6Il_8_kfk";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testGetCheckErrorMessageAtHash() throws Exception {
+    idTokenObject.setAtHash("INVALID_AT_HASH");
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
+    assertEquals(idTokenVer.getErrorMessage(), "invalid_at_hash");
+    assertEquals(idTokenVer.getErrorDescriptionMessage(),
+            "The at_hash did not match. (INVALID_AT_HASH)");
+  }
+
+  @Test
+  public void testGetCheckErrorMessageExpired() throws Exception {
+    idTokenObject.setExp(1311647139);
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
+    IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "expired_id_token");
     assertEquals(idTokenVer.getErrorDescriptionMessage(), "Re-issue Id Token. (1311647139)");
 
   }
 
   @Test
-  public void testGetCheckErrorMessageOverAcceptableRange() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTMxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.O-mfBzK-oPf9Qz50QOwRDn75JUHhwP4Jw0PZU-UZeJM";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testGetCheckErrorMessageOverAcceptableRange() throws Exception {
+    idTokenObject.setIat(1310437540);
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "over_acceptable_range");
     assertEquals(idTokenVer.getErrorDescriptionMessage(),
         "This access has expired possible. (1310437540)");
   }
 
   @Test
-  public void testGetCheckErrorMessageCheckSignature() throws DataFormatException {
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.p7RNhgD2IorhOQd_SxMZ80_LyIL2eJtQEE1ODD44d7k";
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+  public void testGetCheckErrorMessagePublicKeyNotFound() throws Exception {
+    idTokenObject.setKid("INVALID_KID");
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getIdTokenString();
     IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
-    assertFalse(idTokenVer.check(issuer, authNonce, clientId, idTokenObject, clientSecret,
-        idTokenString));
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
+    assertEquals(idTokenVer.getErrorMessage(), "public_key_not_found");
+    assertEquals(idTokenVer.getErrorDescriptionMessage(),
+            "PublicKey for kid not found.");
+  }
+
+  @Test
+  public void testGetCheckErrorMessageCheckSignature() throws Exception {
+    IdTokenGenerator idTokenGenerator = new IdTokenGenerator(idTokenObject);
+    String idTokenString = idTokenGenerator.getInvalidIdTokenString();
+    IdTokenVerification idTokenVer = new IdTokenVerificationCurrentTimeTest(iat);
+    PublicKeysObject publicKeysObject = new PublicKeysObject();
+    publicKeysObject.register(kid, Base64.getEncoder().withoutPadding()
+            .encodeToString(idTokenGenerator.getPublicKey().getEncoded()));
+
+    assertFalse(idTokenVer.check(iss, nonce, clientId, idTokenObject, publicKeysObject,
+            idTokenString, accessToken));
     assertEquals(idTokenVer.getErrorMessage(), "invalid_signature");
     assertEquals(idTokenVer.getErrorDescriptionMessage(), "Signature verification failed.");
   }
@@ -188,5 +299,12 @@ public class IdTokenVerificationTest {
     protected long getCurrentTime() {
       return this.curretTime;
     }
+  }
+
+  private String generateHash(String data) throws UnsupportedEncodingException {
+    byte[] hash = DigestUtils.sha256(data.getBytes("UTF-8"));
+    byte[] halfOfHash = Arrays.copyOfRange(hash, 0, hash.length / 2);
+
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(halfOfHash);
   }
 }

@@ -80,7 +80,7 @@ public class IdTokenVerification {
       return false;
     }
 
-    // Is iss equal to issuer ? (https://auth.login.yahoo.co.jp)
+    // Is iss equal to issuer ? (https://auth.login.yahoo.co.jp/yconnect/v2)
     if (!issuer.equals(iss)) {
       YConnectLogger.error(TAG, "Invalid issuer.");
       this.error = "invalid_issuer";

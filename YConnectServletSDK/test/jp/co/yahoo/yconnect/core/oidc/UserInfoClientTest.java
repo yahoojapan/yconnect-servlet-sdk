@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,7 @@ public class UserInfoClientTest {
   private static String email = "your_email@example.com";
   private static String emailVerified = "true";
   private static String addressLocality = "港区";
+  private static String addressFormatted = "東京都港区";
   private static String addressRegion = "東京都";
   private static String addressPostalCode = "1076211";
   private static String addressCountry = "jp";
@@ -58,14 +59,15 @@ public class UserInfoClientTest {
   public void testUserInfoParser() throws SecurityException, NoSuchMethodException,
       IllegalArgumentException, IllegalAccessException, InvocationTargetException {
     final String json =
-        "{\"user_id\":\"43M63NAGMHBAYMXRMY3WODOWS4\"," + "\"name\":\"矢風太郎\","
+        "{\"sub\":\"43M63NAGMHBAYMXRMY3WODOWS4\"," + "\"name\":\"矢風太郎\","
             + "\"given_name\":\"太郎\"," + "\"given_name#ja-Kana-JP\":\"タロウ\","
             + "\"given_name#ja-Hani-JP\":\"太郎\"," + "\"family_name\":\"矢風\","
             + "\"family_name#ja-Kana-JP\":\"ヤフウ\"," + "\"family_name#ja-Hani-JP\":\"矢風\","
-            + "\"gender\":\"male\"," + "\"birthday\":\"2000\"," + "\"locale\":\"ja-JP\","
+            + "\"gender\":\"male\"," + "\"birthdate\":\"2000\"," + "\"locale\":\"ja-JP\","
             + "\"email\":\"your_email@example.com\"," + "\"email_verified\":true,"
             + "\"address\":{" + "\"locality\":\"港区\"," + "\"region\":\"東京都\","
-            + "\"postal_code\":\"1076211\"," + "\"country\":\"jp\"}}";
+            + "\"postal_code\":\"1076211\"," + "\"country\":\"jp\","
+            + "\"formatted\":\"東京都港区\"}}";
 
     UserInfoClient uic = new UserInfoClient("");
 
@@ -75,7 +77,7 @@ public class UserInfoClientTest {
     uip.invoke(uic, json);
     UserInfoObject uio = uic.getUserInfoObject();
 
-    assertEquals(uio.getUserId(), userId);
+    assertEquals(uio.getSub(), userId);
     assertEquals(uio.getName(), name);
     assertEquals(uio.getGivenName(), givenName);
     assertEquals(uio.getGivenNameJaKanaJp(), givenNameJaKanaJp);
@@ -86,9 +88,10 @@ public class UserInfoClientTest {
     assertEquals(uio.getEmail(), email);
     assertEquals(uio.getEmailVerified(), emailVerified);
     assertEquals(uio.getGender(), gender);
-    assertEquals(uio.getBirthday(), birthday);
+    assertEquals(uio.getBirthdate(), birthday);
     assertEquals(uio.getLocale(), locale);
     assertEquals(uio.getAddressLocality(), addressLocality);
+    assertEquals(uio.getAddressFormatted(), addressFormatted);
     assertEquals(uio.getAddressRegion(), addressRegion);
     assertEquals(uio.getAddressPostalCode(), addressPostalCode);
     assertEquals(uio.getAddressCountry(), addressCountry);
@@ -99,15 +102,15 @@ public class UserInfoClientTest {
   public void testUserInfoParserInvalid() throws SecurityException, NoSuchMethodException,
       IllegalArgumentException, IllegalAccessException, InvocationTargetException {
     final String json =
-        "{\"user_id\":\"43M63NAGMHBAYMXRMY3WODOWS4\"," + "\"name\":\"矢風太郎\","
+        "{\"sub\":\"43M63NAGMHBAYMXRMY3WODOWS4\"," + "\"name\":\"矢風太郎\","
             + "\"given_name\":\"太郎\"," + "\"given_name#ja-Kana-JP\":\"タロウ\","
             + "\"given_name#ja-Hani-JP\":\"太郎\"," + "\"family_name\":\"矢風\","
             + "\"family_name#ja-Kana-JP\":\"ヤフウ\"," + "\"family_name#ja-Hani-JP\":\"矢風\","
-            + "\"gender\":\"male\"," + "\"birthday\":\"2000\"," + "\"locale\":\"ja-JP\","
+            + "\"gender\":\"male\"," + "\"birthdate\":\"2000\"," + "\"locale\":\"ja-JP\","
             + "\"email\":\"your_email@example.com\"," + "\"email_verified\":true,"
             + "\"address\":{" + "\"locality\":\"港区\"," + "\"region\":\"東京都\","
             + "\"postal_code\":\"1076211\"," + "\"country\":\"jp\","
-            + "\"additional_attribute\":\"add\"}}";
+            + "\"formatted\":\"東京都港区\"}}";
 
     UserInfoClient uic = new UserInfoClient("");
 

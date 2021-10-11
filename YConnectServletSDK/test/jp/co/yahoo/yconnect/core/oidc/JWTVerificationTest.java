@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,70 +24,120 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import static org.junit.Assert.*;
-
-import java.util.zip.DataFormatException;
-
-import jp.co.yahoo.yconnect.core.oidc.JWTVerification;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.json.stream.JsonParsingException;
-import org.junit.Test;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.util.Base64;
+import java.util.Collections;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * JWTVerification Test Case
  *
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
+ * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
  *
  */
 public class JWTVerificationTest {
 
+  private static PrivateKey privateKey;
+  private static PublicKey publicKey;
+  private static String base64Header;
+  private static String base64Payload;
+  private static String base64Signature;
+
+  @BeforeClass
+  public static void beforeAll() throws Exception {
+    KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
+    keyPairGen.initialize(2048);
+
+    KeyPair pair = keyPairGen.generateKeyPair();
+    privateKey = pair.getPrivate();
+
+    String header = "{\"typ\": \"JWT\", \"alg\": \"RS256\", \"kid\": \"sample-kid\"}";
+    base64Header = Base64.getUrlEncoder().encodeToString(header.getBytes(StandardCharsets.UTF_8))
+            .replace("=", "");
+
+    String payload = "{\"iss\": \"sample/iss\", \"sub\": \"SampleSub\", \"aud\": [\"SampleAud\"]," +
+            "\"exp\": 1234567890, \"iat\": 1234567890, \"nonce\": \"sample_nonce\"}";
+    base64Payload = Base64.getUrlEncoder().encodeToString(payload.getBytes(StandardCharsets.UTF_8))
+            .replace("=", "");
+
+    base64Signature = getBase64Signature(base64Header, base64Payload, privateKey);
+
+    publicKey = pair.getPublic();
+  }
+
   @Test
-  public void testSuccess() throws DataFormatException {
-    String clientSecret = "SECRET_KEY";
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.OLUFkAlp4BwwAxniMzXyoR5ZFC3Q5HCNHRvR6qDf-zY";
-    JWTVerification verifier = new JWTVerification(clientSecret, idTokenString);
+  public void testSuccess() throws Exception {
+    String idTokenString = base64Header + "." + base64Payload + "." + base64Signature;
+    JWTVerification verifier = new JWTVerification(publicKey, idTokenString);
     boolean result = verifier.verifyJWT();
     assertTrue(result);
   }
 
   @Test(expected = JsonParsingException.class)
-  public void testInvalidHeader() throws DataFormatException {
-    String clientSecret = "SECRET_KEY";
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.OLUFkAlp4BwwAxniMzXyoR5ZFC3Q5HCNHRvR6qDf-zY";
-    JWTVerification verifier = new JWTVerification(clientSecret, idTokenString);
+  public void testInvalidHeader() throws Exception {
+    String header = "{\"typ\": \"JWT\", \"alg\": \"RS256\", \"kid\": \"sample-kid\"";
+    String base64Header = Base64.getUrlEncoder().encodeToString(header.getBytes(StandardCharsets.UTF_8))
+            .replace("=", "");
+    String base64Signature = getBase64Signature(base64Header, base64Payload, privateKey);
+
+    String idTokenString = base64Header + "." + base64Payload + "." + base64Signature;
+    JWTVerification verifier = new JWTVerification(publicKey, idTokenString);
     boolean result = verifier.verifyJWT();
     assertFalse(result);
   }
 
   @Test(expected = JsonParsingException.class)
-  public void testInvalidPayload() throws DataFormatException {
-    String clientSecret = "SECRET_KEY";
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn.OLUFkAlp4BwwAxniMzXyoR5ZFC3Q5HCNHRvR6qDf-zY";
-    JWTVerification verifier = new JWTVerification(clientSecret, idTokenString);
+  public void testInvalidPayload() throws Exception {
+    String payload = "{\"iss\": \"sample/iss\", \"sub\": \"SampleSub\", \"aud\": [\"SampleAud\"]," +
+            "\"exp\": 1234567890, \"iat\": 1234567890, \"nonce\": \"sample_nonce\"";
+    String base64Payload = Base64.getUrlEncoder().encodeToString(payload.getBytes(StandardCharsets.UTF_8))
+            .replace("=", "");
+    String base64Signature = getBase64Signature(base64Header, base64Payload, privateKey);
+
+    String idTokenString = base64Header + "." + base64Payload + "." + base64Signature;
+    JWTVerification verifier = new JWTVerification(publicKey, idTokenString);
     boolean result = verifier.verifyJWT();
     assertFalse(result);
   }
 
   @Test
-  public void testInvalidSignature() throws DataFormatException {
-    String clientSecret = "SECRET_KEY";
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.OLUFkAlp4BwwAxniMzXyoR5ZFC3Q5HCNHRvR6qDf-z";
-    JWTVerification verifier = new JWTVerification(clientSecret, idTokenString);
+  public void testInvalidSignature() throws Exception {
+    String base64Signature = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(String.join("", Collections.nCopies(64, "sign"))
+                    .getBytes(StandardCharsets.UTF_8));
+    String idTokenString = base64Header + "." + base64Payload + "." + base64Signature;
+    JWTVerification verifier = new JWTVerification(publicKey, idTokenString);
     boolean result = verifier.verifyJWT();
     assertFalse(result);
   }
 
   @Test
-  public void testInvalidSecret() throws DataFormatException {
-    String clientSecret = "INVALID_SECRET_KEY";
-    String idTokenString =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXV0aC5sb2dpbi55YWhvby5jby5qcCIsInVzZXJfaWQiOiJVU0VSX0lEIiwiYXVkIjoiQVBQTElDQVRJT05fSUQiLCJleHAiOjE0MTE2NDcxMzksImlhdCI6MTQxMDQzNzU0MCwibm9uY2UiOiJhYmNkZWZnIn0.OLUFkAlp4BwwAxniMzXyoR5ZFC3Q5HCNHRvR6qDf-zY";
-    JWTVerification verifier = new JWTVerification(clientSecret, idTokenString);
+  public void testInvalidPublicKey() throws Exception {
+    KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
+    keyPairGen.initialize(2048);
+    KeyPair pair = keyPairGen.generateKeyPair();
+    PublicKey publicKey = pair.getPublic();
+
+    String idTokenString = base64Header + "." + base64Payload + "." + base64Signature;
+    JWTVerification verifier = new JWTVerification(publicKey, idTokenString);
     boolean result = verifier.verifyJWT();
     assertFalse(result);
+  }
+
+  private static String getBase64Signature(String base64Header, String base64Payload, PrivateKey privateKey) throws Exception {
+    Signature sign = Signature.getInstance("SHA256withRSA");
+    sign.initSign(privateKey);
+    sign.update(base64Header.getBytes(StandardCharsets.UTF_8));
+    sign.update(".".getBytes(StandardCharsets.UTF_8));
+    sign.update(base64Payload.getBytes(StandardCharsets.UTF_8));
+
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(sign.sign());
   }
 }
