@@ -107,10 +107,10 @@ public class ApiClient {
     YConnectLogger.debug(TAG, "request headers: " + requestHeaders.toHeaderString());
     YHttpClient client;
     if (POST_METHOD.equalsIgnoreCase(method)) {
-      client = new YHttpClient();
+      client = newHttpClient();
       client.requestPost(url, parameters, requestHeaders);
     } else if (GET_METHOD.equalsIgnoreCase(method)) {
-      client = new YHttpClient();
+      client = newHttpClient();
       client.requestGet(url, parameters, requestHeaders);
     } else {
       throw new ApiClientException("Undefined Http method.", "");
@@ -218,6 +218,10 @@ public class ApiClient {
       map.put(kv[0].trim(), kv[1].trim());
     }
     return map;
+  }
+
+  protected YHttpClient newHttpClient() {
+    return new YHttpClient();
   }
 
 }
