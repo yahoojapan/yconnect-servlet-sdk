@@ -26,6 +26,7 @@ package jp.co.yahoo.yconnect.core.oauth2;
 
 
 import javax.json.JsonObject;
+import javax.json.JsonString;
 
 import javax.json.JsonString;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;

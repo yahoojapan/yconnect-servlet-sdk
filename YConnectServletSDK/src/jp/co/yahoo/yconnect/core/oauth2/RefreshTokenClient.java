@@ -72,7 +72,7 @@ public class RefreshTokenClient extends AbstractTokenClient {
     requestHeaders.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
     requestHeaders.put("Authorization", "Basic " + basic);
 
-    client = new YHttpClient();
+    client = getYHttpClient();
     client.requestPost(endpointUrl, parameters, requestHeaders);
 
     YConnectLogger.debug(TAG, client.getResponseHeaders().toString());
@@ -98,4 +98,7 @@ public class RefreshTokenClient extends AbstractTokenClient {
     return accessToken;
   }
 
+  protected YHttpClient getYHttpClient() {
+    return new YHttpClient();
+  }
 }

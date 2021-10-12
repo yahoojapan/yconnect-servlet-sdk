@@ -75,8 +75,8 @@ public class ClientCallbackUriParser {
     YConnectLogger.debug(this, "Response Uri: " + request);
     if (request != null) {
       for (String query : request.split("&")) {
-        String name = query.split("=")[0];
-        if (name.equals("code") || name.equals("state")) {
+        if(query.contains("=")) {
+          String name = query.split("=")[0];
           String value = query.split("=")[1];
           parameters.put(name, value);
           YConnectLogger.debug(this, "put param: " + name + "=>" + value);
