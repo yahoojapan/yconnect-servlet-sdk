@@ -84,7 +84,7 @@ public class YConnectServlet extends HttpServlet {
     YConnectClient yconnect = new YConnectClient();
 
     // SSL証明書チェック無効 ※通信テスト用のメソッドなのでサービス時にはコメントアウト推奨
-    // YConnectExplicit.disableSSLCheck();
+    // YConnectClient.disableSSLCheck();
 
     try {
       // コールバックURLから各パラメーターを抽出

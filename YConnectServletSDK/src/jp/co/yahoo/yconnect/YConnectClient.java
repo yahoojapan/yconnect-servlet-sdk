@@ -78,7 +78,7 @@ public class YConnectClient {
   private IdTokenVerification idTokenVerification;
 
   /**
-   * YConnectExplicitのコンストラクタ。
+   * YConnectClientのコンストラクタ。
    */
   public YConnectClient() {}
 
@@ -90,7 +90,7 @@ public class YConnectClient {
    * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
    */
   public void init(String clientId, String redirectUri, String state) {
-    requestClient = new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
+    requestClient = getAuthorizationRequestClient(clientId);;
     requestClient.setRedirectUri(redirectUri);
     requestClient.setState(state);
   }
@@ -109,7 +109,7 @@ public class YConnectClient {
    */
   public void init(String clientId, String redirectUri, String state, String responseType,
       String display, String[] prompt, String[] scope, String nonce) {
-    requestClient = new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
+    requestClient = getAuthorizationRequestClient(clientId);
     requestClient.setRedirectUri(redirectUri);
     requestClient.setState(state);
     this.responseType = responseType;
@@ -184,7 +184,7 @@ public class YConnectClient {
    */
   public boolean hasAuthorizationCode(URI uri) throws AuthorizationException {
     String requesrQuery = null;
-    if (!uri.getQuery().toString().equals("null")) {
+    if (uri != null && !uri.getQuery().toString().equals("null")) {
       requesrQuery = uri.getQuery().toString();
     }
     return hasAuthorizationCode(requesrQuery);
@@ -215,7 +215,7 @@ public class YConnectClient {
   public void requestToken(String code, String clientId, String clientSecret, String redirectUri)
       throws TokenException, Exception {
     TokenClient tokenClient =
-        new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret);
+        getTokenClient(code, redirectUri, clientId, clientSecret);
     tokenClient.fetch();
     accessToken = tokenClient.getAccessToken();
     idToken = tokenClient.getIdToken();
@@ -235,7 +235,7 @@ public class YConnectClient {
   public void requestToken(String code, String clientId, String clientSecret, String redirectUri,
                            String codeVerifier) throws TokenException, Exception {
     TokenClient tokenClient =
-        new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret, codeVerifier);
+        getTokenClient(code, redirectUri, clientId, clientSecret, codeVerifier);
     tokenClient.fetch();
     accessToken = tokenClient.getAccessToken();
     idToken = tokenClient.getIdToken();
@@ -300,13 +300,13 @@ public class YConnectClient {
    */
   public boolean verifyIdToken(String nonce, String clientId, String idTokenString)
           throws DataFormatException, ApiClientException {
-    PublicKeysClient publicKeysClient = new PublicKeysClient();
+    PublicKeysClient publicKeysClient = getPublicKeysClient();
     publicKeysClient.fetchResource(PUBLIC_KEYS_ENDPOINT_URL);
     PublicKeysObject publicKeysObject = publicKeysClient.getPublicKeysObject();
 
     IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
     IdTokenObject idTokenObject = idTokenDecoder.decode();
-    this.idTokenVerification = new IdTokenVerification();
+    this.idTokenVerification = getIdTokenVerification();
     return this.idTokenVerification.check(ISSUER, nonce, clientId, idTokenObject, publicKeysObject,
         idTokenString, accessToken.getAccessToken());
   }
@@ -340,8 +340,7 @@ public class YConnectClient {
    */
   public void refreshToken(String refreshToken, String clientId, String clientSecret)
       throws TokenException, Exception {
-    RefreshTokenClient refreshTokenClient =
-        new RefreshTokenClient(TOKEN_ENDPOINT_URL, refreshToken, clientId, clientSecret);
+    RefreshTokenClient refreshTokenClient = getRefreshTokenClient(refreshToken, clientId, clientSecret);
     refreshTokenClient.fetch();
     accessToken = refreshTokenClient.getAccessToken();
   }
@@ -354,7 +353,7 @@ public class YConnectClient {
    * @throws Exception
    */
   public void requestUserInfo(String accessTokenString) throws ApiClientException, Exception {
-    UserInfoClient userInfoClient = new UserInfoClient(accessTokenString);
+    UserInfoClient userInfoClient = getUserInfoClient(accessTokenString);
     userInfoClient.fetchResouce(USERINFO_ENDPOINT_URL, ApiClient.GET_METHOD);
     userInfoObject = userInfoClient.getUserInfoObject();
   }
@@ -425,6 +424,35 @@ public class YConnectClient {
    */
   public static void enableSSLCheck() {
     YHttpClient.enableSSLCheck();
+  }
+
+  protected AuthorizationRequestClient getAuthorizationRequestClient(String clientId) {
+    return new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
+  }
+
+  protected TokenClient getTokenClient(String code, String redirectUri, String clientId, String clientSecret) {
+    return new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret);
+  }
+
+  protected TokenClient getTokenClient(String code, String redirectUri, String clientId, String clientSecret,
+                                       String codeVerifier) {
+    return new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret, codeVerifier);
+  }
+
+  protected PublicKeysClient getPublicKeysClient() {
+    return new PublicKeysClient();
+  }
+
+  protected RefreshTokenClient getRefreshTokenClient(String refreshToken, String clientId, String clientSecret) {
+    return new RefreshTokenClient(TOKEN_ENDPOINT_URL, refreshToken, clientId, clientSecret);
+  }
+
+  protected UserInfoClient getUserInfoClient(String accessTokenString) {
+    return new UserInfoClient(accessTokenString);
+  }
+
+  protected IdTokenVerification getIdTokenVerification() {
+    return new IdTokenVerification();
   }
 
   /**
