@@ -24,9 +24,10 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.binary.Base64;
+
+import java.io.UnsupportedEncodingException;
 import java.security.*;
-import java.util.Base64;
 import java.util.zip.DataFormatException;
 
 /**
@@ -58,22 +59,22 @@ public class JWTVerification {
    * @return
    * @throws DataFormatException
    */
-  public boolean verifyJWT() throws DataFormatException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+  public boolean verifyJWT() throws DataFormatException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, UnsupportedEncodingException {
     IdTokenDecoder idTokenDecoder = new IdTokenDecoder(this.idTokenString);
     IdTokenObject idTokenObject = idTokenDecoder.decode();
 
     Signature verifier = getVerifier();
-    byte[] signatureBytes = Base64.getUrlDecoder().decode(idTokenObject.getSignature());
+    byte[] signatureBytes = Base64.decodeBase64(idTokenObject.getSignature());
 
     return verifier.verify(signatureBytes);
   }
 
-  private Signature getVerifier() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+  private Signature getVerifier() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, UnsupportedEncodingException {
     String[] idTokenArray = idTokenString.split("\\.");
     String dataPart = idTokenArray[0] + "." + idTokenArray[1];
     Signature signature = Signature.getInstance("SHA256withRSA");
     signature.initVerify(publicKey);
-    signature.update(dataPart.getBytes(StandardCharsets.UTF_8));
+    signature.update(dataPart.getBytes("UTF-8"));
 
     return signature;
   }

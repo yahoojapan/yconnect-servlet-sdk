@@ -8,3 +8,5 @@
  */
 
 rootProject.name = 'yconnect-servlet-sdk'
+
+include 'YConnectServletSDK:test'

@@ -24,9 +24,8 @@
 
 package jp.co.yahoo.yconnect;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.zip.DataFormatException;
 
 import jp.co.yahoo.yconnect.core.api.ApiClient;
@@ -36,6 +35,7 @@ import jp.co.yahoo.yconnect.core.oauth2.*;
 import jp.co.yahoo.yconnect.core.oauth2.ClientCallbackUriParser;
 import jp.co.yahoo.yconnect.core.oidc.*;
 import jp.co.yahoo.yconnect.core.util.StringUtil;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**
@@ -146,7 +146,7 @@ public class YConnectClient {
    * 
    * @return リクエストURI
    */
-  public URI generateAuthorizationUri() {
+  public URI generateAuthorizationUri() throws UnsupportedEncodingException {
     requestClient.setResponseType(responseType);
     requestClient.setParameter("display", display);
     requestClient.setParameter("prompt", prompt);
@@ -461,8 +461,8 @@ public class YConnectClient {
    * @param plainCodeChallenge ハッシュ化前のcodeChallenge
    * @return SHA-256でハッシュ化されたcode challenge
    */
-  private String generateCodeChallenge(String plainCodeChallenge) {
-    byte[] hashBytes = DigestUtils.sha256(plainCodeChallenge.getBytes(StandardCharsets.UTF_8));
-    return Base64.getUrlEncoder().withoutPadding().encodeToString(hashBytes);
+  private String generateCodeChallenge(String plainCodeChallenge) throws UnsupportedEncodingException {
+    byte[] hashBytes = DigestUtils.sha256(plainCodeChallenge.getBytes("UTF-8"));
+    return Base64.encodeBase64URLSafeString(hashBytes);
   }
 }

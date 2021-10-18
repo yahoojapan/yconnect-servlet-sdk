@@ -24,14 +24,14 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
+import org.apache.commons.codec.binary.Base64;
+
 import javax.json.JsonObject;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +47,7 @@ public class PublicKeysObject {
     private JsonObject jsonObject;
 
     public PublicKeysObject() {
-        publicKeys = new HashMap<>();
+        publicKeys = new HashMap<String, String>();
     }
 
     /**
@@ -67,7 +67,7 @@ public class PublicKeysObject {
                 .replace("-----END PUBLIC KEY-----", "");
 
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec keySpecX509 = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent));
+        X509EncodedKeySpec keySpecX509 = new X509EncodedKeySpec(Base64.decodeBase64(publicKeyContent));
 
         return (RSAPublicKey) keyFactory.generatePublic(keySpecX509);
     }
