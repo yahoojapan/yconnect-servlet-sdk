@@ -39,7 +39,7 @@ public class PublicKeysClient {
     private PublicKeysObject publicKeysObject;
 
     public void fetchResource(String url) throws ApiClientException {
-        YHttpClient client = new YHttpClient();
+        YHttpClient client = getYHttpClient();
         client.requestGet(url, null, null);
 
         int responseCode = client.getStatusCode();
@@ -72,5 +72,9 @@ public class PublicKeysClient {
 
     public PublicKeysObject getPublicKeysObject() {
         return publicKeysObject;
+    }
+
+    protected YHttpClient getYHttpClient() {
+        return new YHttpClient();
     }
 }

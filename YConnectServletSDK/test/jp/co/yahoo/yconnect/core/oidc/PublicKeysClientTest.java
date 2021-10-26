@@ -24,6 +24,10 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
+import jp.co.yahoo.yconnect.core.api.ApiClientException;
+import jp.co.yahoo.yconnect.core.http.HttpHeaders;
+import jp.co.yahoo.yconnect.core.http.HttpParameters;
+import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -34,11 +38,11 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Base64;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class PublicKeysClientTest {
 
+    private final String endpoint = "https://userinfo.yahooapis.jp/yconnect/v2/attribute";
     private static String publicKey;
 
     @BeforeClass
@@ -48,6 +52,94 @@ public class PublicKeysClientTest {
 
         KeyPair pair = keyPairGen.generateKeyPair();
         publicKey = Base64.getEncoder().encodeToString(pair.getPublic().getEncoded());
+    }
+
+    @Test
+    public void testFetchResource() throws ApiClientException {
+        YHttpClient httpClient = new YHttpClient() {
+            @Override
+            public void requestGet(String urlString, HttpParameters parameters, HttpHeaders requestHeaders) {
+
+            }
+
+            @Override
+            public int getStatusCode() {
+                return 200;
+            }
+
+            @Override
+            public String getStatusMessage() {
+                return "200 - OK";
+            }
+
+            @Override
+            public HttpHeaders getResponseHeaders() {
+                return new HttpHeaders();
+            }
+
+            @Override
+            public String getResponseBody() {
+                return "{\"kid\":\"sample_public_key\"}";
+            }
+        };
+
+        PublicKeysClient client = new PublicKeysClient() {
+            @Override
+            protected YHttpClient getYHttpClient() {
+                return httpClient;
+            }
+        };
+
+        client.fetchResource(endpoint);
+
+        assertNotNull(client.getPublicKeysObject());
+    }
+
+    @Test
+    public void testFetchResourceThrowsApiClientException() {
+        int responseCode = 400;
+        String statusMessage = "400 - Bad Request";
+        HttpHeaders headers = new HttpHeaders();
+        String responseBody = "{}";
+
+        YHttpClient httpClient = new YHttpClient() {
+            @Override
+            public void requestGet(String urlString, HttpParameters parameters, HttpHeaders requestHeaders) {
+
+            }
+
+            @Override
+            public int getStatusCode() {
+                return responseCode;
+            }
+
+            @Override
+            public String getStatusMessage() {
+                return statusMessage;
+            }
+
+            @Override
+            public HttpHeaders getResponseHeaders() {
+                return headers;
+            }
+
+            @Override
+            public String getResponseBody() {
+                return responseBody;
+            }
+        };
+
+        PublicKeysClient client = new PublicKeysClient() {
+            @Override
+            protected YHttpClient getYHttpClient() {
+                return httpClient;
+            }
+        };
+
+        ApiClientException ex = assertThrows(ApiClientException.class, () -> client.fetchResource(endpoint));
+
+        String expect = "Failed Request.(status code: " + responseCode + " status message: " + statusMessage + ")";
+        assertEquals(expect, ex.getError());
     }
 
     @Test
