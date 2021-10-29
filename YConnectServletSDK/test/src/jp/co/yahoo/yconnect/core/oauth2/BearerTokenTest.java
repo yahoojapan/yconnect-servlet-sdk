@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,13 +24,13 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class BearerTokenTest {
 
-    private String accessToken = "access_token";
+    private final String accessToken = "access_token";
 
     @Test
     public void testToAuthorizationHeader() {

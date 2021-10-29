@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,10 +24,7 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-
 import javax.json.JsonObject;
-import javax.json.JsonString;
-
 import javax.json.JsonString;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 
@@ -35,53 +32,50 @@ import jp.co.yahoo.yconnect.core.util.YConnectLogger;
  * Abstract Token Client Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 abstract class AbstractTokenClient {
 
-  private final static String TAG = AbstractTokenClient.class.getSimpleName();
+    private static final String TAG = AbstractTokenClient.class.getSimpleName();
 
-  protected String endpointUrl;
+    protected String endpointUrl;
 
-  protected String clientId;
+    protected String clientId;
 
-  protected String clientSecret;
+    protected String clientSecret;
 
-  protected BearerToken accessToken;
+    protected BearerToken accessToken;
 
-  public AbstractTokenClient(String endpointUrl, String clientId, String clientSecret) {
-    this.endpointUrl = endpointUrl;
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-  }
-
-  abstract void fetch() throws TokenException, Exception;
-
-  public BearerToken getAccessToken() {
-    return accessToken;
-  }
-
-  protected void checkErrorResponse(int statusCode, JsonObject jsonObject) throws TokenException {
-
-    if (statusCode >= 400) {
-        JsonString errorJsonString = jsonObject.getJsonString("error");
-      if (errorJsonString != null) {
-        String error = errorJsonString.getString();
-        String errorDescription = (String) jsonObject.getString("error_description");
-        int errorCode = jsonObject.getInt("error_code");
-        YConnectLogger.error(TAG, error + " / " + errorDescription + " / " + errorCode);
-        throw new TokenException(error, errorDescription, errorCode);
-      } else {
-        YConnectLogger.error(TAG, "An unexpected error has occurred.");
-        throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
-      }
-    } else if (statusCode == 200) {
-      return;
-    } else {
-      YConnectLogger.error(TAG, "An unexpected error has occurred.");
-      throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
+    public AbstractTokenClient(String endpointUrl, String clientId, String clientSecret) {
+        this.endpointUrl = endpointUrl;
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
     }
 
-  }
+    abstract void fetch() throws TokenException;
 
+    public BearerToken getAccessToken() {
+        return accessToken;
+    }
+
+    protected void checkErrorResponse(int statusCode, JsonObject jsonObject) throws TokenException {
+
+        if (statusCode >= 400) {
+            JsonString errorJsonString = jsonObject.getJsonString("error");
+            if (errorJsonString != null) {
+                String error = errorJsonString.getString();
+                String errorDescription = jsonObject.getString("error_description");
+                int errorCode = jsonObject.getInt("error_code");
+                YConnectLogger.error(TAG, error + " / " + errorDescription + " / " + errorCode);
+                throw new TokenException(error, errorDescription, errorCode);
+            } else {
+                YConnectLogger.error(TAG, "An unexpected error has occurred.");
+                throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
+            }
+        } else if (statusCode == 200) {
+            return;
+        } else {
+            YConnectLogger.error(TAG, "An unexpected error has occurred.");
+            throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
+        }
+    }
 }

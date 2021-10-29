@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,19 +24,20 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import jp.co.yahoo.yconnect.core.oidc.OIDCDisplay;
 import jp.co.yahoo.yconnect.core.oidc.OIDCPrompt;
 import jp.co.yahoo.yconnect.core.oidc.OIDCScope;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
 public class AuthorizationRequestClientTest {
 
     @Test
     public void testGenerateAuthorizationUri() {
-        AuthorizationRequestClient client = new AuthorizationRequestClient("https://example.co.jp", "client_id");
+        AuthorizationRequestClient client =
+                new AuthorizationRequestClient("https://example.co.jp", "client_id");
 
         client.setState("state");
         client.setRedirectUri("https://example.co.jp/callback");
@@ -47,17 +48,19 @@ public class AuthorizationRequestClientTest {
         client.setParameter("nonce", "nonce_sample");
         client.setParameter("max_age", "3600");
         client.setParameter("code_challenge", "code_challenge_sample");
-        client.setParameter("code_challenge_method",  "S256");
+        client.setParameter("code_challenge_method", "S256");
 
-        String expect = "https://example.co.jp?max_age=3600&display=page&scope=openid+profile&response_type=code&"
-                + "code_challenge_method=S256&state=state&redirect_uri=https%3A%2F%2Fexample.co.jp%2Fcallback&"
-                + "prompt=login+consent&nonce=nonce_sample&code_challenge=code_challenge_sample&client_id=client_id";
+        String expect =
+                "https://example.co.jp?max_age=3600&display=page&scope=openid+profile&response_type=code&"
+                        + "code_challenge_method=S256&state=state&redirect_uri=https%3A%2F%2Fexample.co.jp%2Fcallback&"
+                        + "prompt=login+consent&nonce=nonce_sample&code_challenge=code_challenge_sample&client_id=client_id";
         assertEquals(expect, client.generateAuthorizationUri().toString());
     }
 
     @Test
     public void testGenerateAuthorizationUriReturnsNull() {
-        AuthorizationRequestClient client = new AuthorizationRequestClient("https://example.co.jp^/", "client_id");
+        AuthorizationRequestClient client =
+                new AuthorizationRequestClient("https://example.co.jp^/", "client_id");
 
         client.setState("state");
         client.setRedirectUri("https://example.co.jp/callback");

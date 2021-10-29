@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,126 +28,125 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.DataFormatException;
-
 import javax.json.*;
-
 import org.apache.commons.codec.binary.Base64;
 
 /**
  * IdToken Decoder Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class IdTokenDecoder {
 
-  private String idTokenString;
+    private final String idTokenString;
 
-  /**
-   * IdTokenDecoderコンストラクタ
-   *
-   * @param idTokenString
-   */
-  public IdTokenDecoder(String idTokenString) {
-    this.idTokenString = idTokenString;
-  }
-
-  /**
-   * IdTokenのデコード
-   * 
-   * @return IdTokenObject
-   * @throws DataFormatException
-   */
-  public IdTokenObject decode() throws DataFormatException {
-
-    HashMap<String, String> idToken = this.splitIdToken();
-
-    // Header
-    String jsonHeader = idToken.get("header");
-
-    JsonReader jsonHeaderReader = Json.createReader(new StringReader(jsonHeader));
-    JsonObject rootHeader = jsonHeaderReader.readObject();
-    jsonHeaderReader.close();
-
-    JsonString typeString = rootHeader.getJsonString("typ");
-    String type = typeString.getString();
-
-    JsonString algorithmString = rootHeader.getJsonString("alg");
-    String algorithm = algorithmString.getString();
-
-    JsonString kidString = rootHeader.getJsonString("kid");
-    String kid = kidString.getString();
-
-    // Payload
-    String jsonPayload = idToken.get("payload");
-
-    JsonReader jsonPayloadReader = Json.createReader(new StringReader(jsonPayload));
-
-    JsonObject rootPayload = jsonPayloadReader.readObject();
-    jsonPayloadReader.close();
-
-    JsonString issString = rootPayload.getJsonString("iss");
-    String iss = issString.getString();
-
-    JsonString subString = rootPayload.getJsonString("sub");
-    String sub = subString.getString();
-
-    String ppidSub;
-    try {
-      ppidSub = rootPayload.getString("ppid_sub");
-    } catch (NullPointerException ex) {
-      ppidSub = null;
+    /**
+     * IdTokenDecoderコンストラクタ
+     *
+     * @param idTokenString IDトークン文字列
+     */
+    public IdTokenDecoder(String idTokenString) {
+        this.idTokenString = idTokenString;
     }
 
-    JsonArray audStringArr = rootPayload.getJsonArray("aud");
-    ArrayList<String> aud = new ArrayList<String>();
-    for(JsonValue audValue : audStringArr) {
-      JsonString audString = (JsonString) audValue;
-      aud.add(audString.getString());
+    /**
+     * IdTokenのデコード
+     *
+     * @return IdTokenObject
+     * @throws DataFormatException 入力された文字列がJWTフォーマットではないときに発生
+     */
+    public IdTokenObject decode() throws DataFormatException {
+
+        HashMap<String, String> idToken = this.splitIdToken();
+
+        // Header
+        String jsonHeader = idToken.get("header");
+
+        JsonReader jsonHeaderReader = Json.createReader(new StringReader(jsonHeader));
+        JsonObject rootHeader = jsonHeaderReader.readObject();
+        jsonHeaderReader.close();
+
+        JsonString typeString = rootHeader.getJsonString("typ");
+        String type = typeString.getString();
+
+        JsonString algorithmString = rootHeader.getJsonString("alg");
+        String algorithm = algorithmString.getString();
+
+        JsonString kidString = rootHeader.getJsonString("kid");
+        String kid = kidString.getString();
+
+        // Payload
+        String jsonPayload = idToken.get("payload");
+
+        JsonReader jsonPayloadReader = Json.createReader(new StringReader(jsonPayload));
+
+        JsonObject rootPayload = jsonPayloadReader.readObject();
+        jsonPayloadReader.close();
+
+        JsonString issString = rootPayload.getJsonString("iss");
+        String iss = issString.getString();
+
+        JsonString subString = rootPayload.getJsonString("sub");
+        String sub = subString.getString();
+
+        String ppidSub;
+        try {
+            ppidSub = rootPayload.getString("ppid_sub");
+        } catch (NullPointerException ex) {
+            ppidSub = null;
+        }
+
+        JsonArray audStringArr = rootPayload.getJsonArray("aud");
+        ArrayList<String> aud = new ArrayList<String>();
+        for (JsonValue audValue : audStringArr) {
+            JsonString audString = (JsonString) audValue;
+            aud.add(audString.getString());
+        }
+
+        JsonNumber expString = rootPayload.getJsonNumber("exp");
+        int exp = expString.intValue();
+
+        JsonNumber iatString = rootPayload.getJsonNumber("iat");
+        int iat = iatString.intValue();
+
+        JsonNumber authTimeString = rootPayload.getJsonNumber("auth_time");
+        long authTime = 0;
+        if (authTimeString != null) {
+            authTime = authTimeString.longValue();
+        }
+
+        JsonString nonceString = rootPayload.getJsonString("nonce");
+        String nonce = nonceString.getString();
+
+        String atHash;
+        try {
+            atHash = rootPayload.getString("at_hash");
+        } catch (NullPointerException ex) {
+            atHash = null;
+        }
+
+        // signature
+        String signature = idToken.get("signature");
+
+        // デコードした値を格納
+        return new IdTokenObject(
+                type, algorithm, kid, iss, sub, ppidSub, aud, nonce, atHash, exp, iat, authTime,
+                signature);
     }
 
-    JsonNumber expString = rootPayload.getJsonNumber("exp");
-    int exp = expString.intValue();
+    private HashMap<String, String> splitIdToken() throws DataFormatException {
+        String[] idTokens = this.idTokenString.split("\\.");
 
-    JsonNumber iatString = rootPayload.getJsonNumber("iat");
-    int iat = iatString.intValue();
+        if (idTokens.length != 3) {
+            throw new DataFormatException();
+        }
 
-    JsonNumber authTimeString = rootPayload.getJsonNumber("auth_time");
-    long authTime = 0;
-    if(authTimeString != null) {
-      authTime = authTimeString.longValue();
+        // 分割したidTokenを格納
+        HashMap<String, String> idTokenMap = new HashMap<String, String>();
+        idTokenMap.put("header", new String(Base64.decodeBase64(idTokens[0].getBytes())));
+        idTokenMap.put("payload", new String(Base64.decodeBase64(idTokens[1].getBytes())));
+        idTokenMap.put("signature", idTokens[2]);
+
+        return idTokenMap;
     }
-
-    JsonString nonceString = rootPayload.getJsonString("nonce");
-    String nonce = nonceString.getString();
-
-    String atHash;
-    try {
-      atHash = rootPayload.getString("at_hash");
-    } catch (NullPointerException ex) {
-      atHash = null;
-    }
-
-    // signature
-    String signature = idToken.get("signature");
-
-    // デコードした値を格納
-    return new IdTokenObject(type, algorithm, kid, iss, sub, ppidSub, aud, nonce, atHash, exp, iat, authTime, signature);
-  }
-
-  private HashMap<String, String> splitIdToken() throws DataFormatException {
-    String[] idTokens = this.idTokenString.split("\\.");
-
-    if (idTokens.length != 3) {
-      throw new DataFormatException();
-    }
-
-    // 分割したidTokenを格納
-    HashMap<String, String> idTokenMap = new HashMap<String, String>();
-    idTokenMap.put("header", new String(Base64.decodeBase64(idTokens[0].getBytes())));
-    idTokenMap.put("payload", new String(Base64.decodeBase64(idTokens[1].getBytes())));
-    idTokenMap.put("signature", idTokens[2]);
-
-    return idTokenMap;
-  }
 }

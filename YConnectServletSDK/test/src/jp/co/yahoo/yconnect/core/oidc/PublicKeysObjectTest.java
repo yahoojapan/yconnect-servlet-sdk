@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,8 +24,8 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
@@ -33,9 +33,8 @@ import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class PublicKeysObjectTest {
 
@@ -85,7 +84,8 @@ public class PublicKeysObjectTest {
     @Test(expected = InvalidKeySpecException.class)
     public void testInvalidGetPublicKey() throws Exception {
         PublicKeysObject publicKeysObject = new PublicKeysObject();
-        String invalidPublicKey = Base64.getEncoder().encodeToString("invalid".getBytes(StandardCharsets.UTF_8));
+        String invalidPublicKey =
+                Base64.getEncoder().encodeToString("invalid".getBytes(StandardCharsets.UTF_8));
         publicKeysObject.register("kid", invalidPublicKey);
 
         publicKeysObject.getPublicKey("kid");

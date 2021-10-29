@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -25,80 +25,77 @@
 package jp.co.yahoo.yconnect.core.oauth2;
 
 import java.io.StringReader;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-
 import jp.co.yahoo.yconnect.core.http.HttpHeaders;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;
-
 import org.apache.commons.codec.binary.Base64;
 
 /**
  * Refresh Token Client Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class RefreshTokenClient extends AbstractTokenClient {
 
-  private final static String TAG = RefreshTokenClient.class.getSimpleName();
+    private static final String TAG = RefreshTokenClient.class.getSimpleName();
 
-  private YHttpClient client;
+    private final String refreshToken;
 
-  private String refreshToken;
+    private BearerToken accessToken;
 
-  private BearerToken accessToken;
+    public RefreshTokenClient(
+            String endpointUrl, String refreshToken, String clientId, String clientSecret) {
+        super(endpointUrl, clientId, clientSecret);
+        this.refreshToken = refreshToken;
+    }
 
-  public RefreshTokenClient(String endpointUrl, String refreshToken, String clientId,
-      String clientSecret) {
-    super(endpointUrl, clientId, clientSecret);
-    this.refreshToken = refreshToken;
-  }
+    /**
+     * リフレッシュトークン取得をリクエストします
+     *
+     * @throws TokenException レスポンスにエラーが含まれているときに発生
+     */
+    public void fetch() throws TokenException {
 
-  public void fetch() throws TokenException, Exception {
+        HttpParameters parameters = new HttpParameters();
+        parameters.put("grant_type", OAuth2GrantType.REFRESH_TOKEN);
+        parameters.put("refresh_token", refreshToken);
 
-    HttpParameters parameters = new HttpParameters();
-    parameters.put("grant_type", OAuth2GrantType.REFRESH_TOKEN);
-    parameters.put("refresh_token", refreshToken);
+        String credential = clientId + ":" + clientSecret;
+        String basic = new String(Base64.encodeBase64(credential.getBytes()));
 
-    String credential = clientId + ":" + clientSecret;
-    String basic = new String(Base64.encodeBase64(credential.getBytes()));
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+        requestHeaders.put("Authorization", "Basic " + basic);
 
-    HttpHeaders requestHeaders = new HttpHeaders();
-    requestHeaders.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-    requestHeaders.put("Authorization", "Basic " + basic);
+        YHttpClient client = getYHttpClient();
+        client.requestPost(endpointUrl, parameters, requestHeaders);
 
-    client = getYHttpClient();
-    client.requestPost(endpointUrl, parameters, requestHeaders);
+        YConnectLogger.debug(TAG, client.getResponseHeaders().toString());
+        YConnectLogger.debug(TAG, client.getResponseBody());
 
-    YConnectLogger.debug(TAG, client.getResponseHeaders().toString());
-    YConnectLogger.debug(TAG, client.getResponseBody().toString());
+        String json = client.getResponseBody();
+        JsonReader jsonReader = Json.createReader(new StringReader(json));
+        JsonObject jsonObject = jsonReader.readObject();
+        jsonReader.close();
 
-    String json = client.getResponseBody();
-    JsonReader jsonReader = Json.createReader(new StringReader(json));
-    JsonObject jsonObject = jsonReader.readObject();
-    jsonReader.close();
+        int statusCode = client.getStatusCode();
 
+        checkErrorResponse(statusCode, jsonObject);
 
-    int statusCode = client.getStatusCode();
+        String accessTokenString = jsonObject.getString("access_token");
+        long expiresIn = jsonObject.getJsonNumber("expires_in").longValue();
+        accessToken = new BearerToken(accessTokenString, expiresIn, refreshToken);
+    }
 
-    checkErrorResponse(statusCode, jsonObject);
+    public BearerToken getAccessToken() {
+        return accessToken;
+    }
 
-    String accessTokenString = (String) jsonObject.getString("access_token");
-    long expiresIn = jsonObject.getJsonNumber("expires_in").longValue();
-    accessToken = new BearerToken(accessTokenString, expiresIn, refreshToken);
-
-  }
-
-  public BearerToken getAccessToken() {
-    return accessToken;
-  }
-
-  protected YHttpClient getYHttpClient() {
-    return new YHttpClient();
-  }
+    protected YHttpClient getYHttpClient() {
+        return new YHttpClient();
+    }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,9 +24,6 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import org.apache.commons.codec.binary.Base64;
-
-import javax.json.JsonObject;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
@@ -34,12 +31,13 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
+import javax.json.JsonObject;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * PublicKeys Object Class
  *
  * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class PublicKeysObject {
 
@@ -56,18 +54,22 @@ public class PublicKeysObject {
      * @param kid kid
      * @return 公開鍵の文字列。紐づく鍵がなければnull。
      */
-    public RSAPublicKey getPublicKey(String kid) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public RSAPublicKey getPublicKey(String kid)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
         String publicKeyString = publicKeys.get(kid);
-        if(publicKeyString == null) {
+        if (publicKeyString == null) {
             return null;
         }
 
-        String publicKeyContent = publicKeyString.replace("\n", "")
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "");
+        String publicKeyContent =
+                publicKeyString
+                        .replace("\n", "")
+                        .replace("-----BEGIN PUBLIC KEY-----", "")
+                        .replace("-----END PUBLIC KEY-----", "");
 
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec keySpecX509 = new X509EncodedKeySpec(Base64.decodeBase64(publicKeyContent));
+        X509EncodedKeySpec keySpecX509 =
+                new X509EncodedKeySpec(Base64.decodeBase64(publicKeyContent));
 
         return (RSAPublicKey) keyFactory.generatePublic(keySpecX509);
     }

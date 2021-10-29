@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,197 +28,187 @@ package jp.co.yahoo.yconnect.core.oauth2;
  * OAuth 2.0 Authorization Exception.
  *
  * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class AuthorizationException extends Exception {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * Error code.
-   */
-  private String error = "";
+    /** Error code. */
+    private String error = "";
 
-  /**
-   * Description of error.
-   */
-  private String errorDescription = "";
+    /** Description of error. */
+    private String errorDescription = "";
 
-  /**
-   * Error judge code.
-   */
-  private String errorCode;
+    /** Error judge code. */
+    private String errorCode;
 
-  /**
-   * OAuth2AuthorizationException Constructor.
-   */
-  public AuthorizationException() {
-    super();
-  }
-
-  /**
-   * OAuth2AuthorizationException Constructor.
-   * 
-   * @param error Error code.
-   * @param message Description of error.
-   * @param errorCode Error judge code.
-   */
-  public AuthorizationException(String error, String message, String errorCode) {
-    super(message);
-    this.error = error;
-    this.errorDescription = message;
-    this.errorCode = errorCode;
-  }
-
-  /**
-   * OAuth2AuthorizationException Constructor.
-   * 
-   * @param error Error code.
-   * @param message Description of error.
-   * @param cause
-   */
-  public AuthorizationException(String error, String message, Throwable cause) {
-    super(message, cause);
-    this.error = error;
-    this.errorDescription = message;
-  }
-
-  /**
-   * OAuth2AuthorizationException Constructor.
-   * 
-   * @param error Error code.
-   * @param cause
-   */
-  public AuthorizationException(String error, Throwable cause) {
-    super(cause);
-    this.error = error;
-  }
-
-  /**
-   * Get error code.
-   * 
-   * @return error code of type String.
-   */
-  public String getError() {
-    return this.error;
-  }
-
-  /**
-   * Get description of error.
-   * 
-   * @return description of type String.
-   */
-  public String getErrorDescription() {
-    return this.errorDescription;
-  }
-
-  /**
-   * Get error judge code.
-   *
-   * @return error judge code of type String.
-   */
-  public String getErrorCode() {
-    return this.errorCode;
-  }
-
-  /**
-   * Determine if this error is "invalid_request".
-   * 
-   * @return true if this error is "invalid_request"; false otherwise.
-   */
-  public boolean isInvalidRequest() {
-    if ("invalid_request".equals(error)) {
-      return true;
+    /** OAuth2AuthorizationException Constructor. */
+    public AuthorizationException() {
+        super();
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "unauthorized_client".
-   * 
-   * @return true if this error is "unauthorized_client"; false otherwise.
-   */
-  public boolean isUnauthorizedClient() {
-    if ("unauthorized_client".equals(error)) {
-      return true;
+    /**
+     * OAuth2AuthorizationException Constructor.
+     *
+     * @param error Error code.
+     * @param message Description of error.
+     * @param errorCode Error judge code.
+     */
+    public AuthorizationException(String error, String message, String errorCode) {
+        super(message);
+        this.error = error;
+        this.errorDescription = message;
+        this.errorCode = errorCode;
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "access_deined".
-   * 
-   * @return true if this error is "access_denied"; false otherwise.
-   */
-  public boolean isAccessDenied() {
-    if ("access_denied".equals(error)) {
-      return true;
+    /**
+     * OAuth2AuthorizationException Constructor.
+     *
+     * @param error Error code.
+     * @param message Description of error.
+     * @param cause The cause.
+     */
+    public AuthorizationException(String error, String message, Throwable cause) {
+        super(message, cause);
+        this.error = error;
+        this.errorDescription = message;
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "unsupported_response_tyupe".
-   * 
-   * @return true if this error is "unsupported_response_type"; false otherwise.
-   */
-  public boolean isUnsupportedResponseType() {
-    if ("unsupported_response_type".equals(error)) {
-      return true;
+    /**
+     * OAuth2AuthorizationException Constructor.
+     *
+     * @param error Error code.
+     * @param cause The cause.
+     */
+    public AuthorizationException(String error, Throwable cause) {
+        super(cause);
+        this.error = error;
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "invalid_scope"; false otherwise.
-   * 
-   * @return true if this error is "invalid_scope"; false otherwise.
-   */
-  public boolean isInvalidScope() {
-    if ("invalid_scope".equals(error)) {
-      return true;
+    /**
+     * Get error code.
+     *
+     * @return error code of type String.
+     */
+    public String getError() {
+        return this.error;
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "server_error".
-   * 
-   * @return true if this error is "server_error"; false otherwise.
-   */
-  public boolean isServerError() {
-    if ("server_error".equals(error)) {
-      return true;
+    /**
+     * Get description of error.
+     *
+     * @return description of type String.
+     */
+    public String getErrorDescription() {
+        return this.errorDescription;
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "temporarily_avaliable".
-   * 
-   * @return true if this error is "temporarily_available"; false otherwise.
-   */
-  public boolean isTemporarilyUnavailable() {
-    if ("temporarily_available".equals(error)) {
-      return true;
+    /**
+     * Get error judge code.
+     *
+     * @return error judge code of type String.
+     */
+    public String getErrorCode() {
+        return this.errorCode;
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "invalid_grant".
-   * 
-   * @return true if this error is "invalid_grant"; false otherwise.
-   */
-  public boolean isInvalidGrant() {
-    if ("invalid_grant".equals(error)) {
-      return true;
+    /**
+     * Determine if this error is "invalid_request".
+     *
+     * @return true if this error is "invalid_request"; false otherwise.
+     */
+    public boolean isInvalidRequest() {
+        if ("invalid_request".equals(error)) {
+            return true;
+        }
+        return false;
     }
-    return false;
-  }
 
-  public String toString() {
-    return "error: " + this.error + " error_description: " + errorDescription;
-  }
+    /**
+     * Determine if this error is "unauthorized_client".
+     *
+     * @return true if this error is "unauthorized_client"; false otherwise.
+     */
+    public boolean isUnauthorizedClient() {
+        if ("unauthorized_client".equals(error)) {
+            return true;
+        }
+        return false;
+    }
 
+    /**
+     * Determine if this error is "access_deined".
+     *
+     * @return true if this error is "access_denied"; false otherwise.
+     */
+    public boolean isAccessDenied() {
+        if ("access_denied".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if this error is "unsupported_response_tyupe".
+     *
+     * @return true if this error is "unsupported_response_type"; false otherwise.
+     */
+    public boolean isUnsupportedResponseType() {
+        if ("unsupported_response_type".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if this error is "invalid_scope"; false otherwise.
+     *
+     * @return true if this error is "invalid_scope"; false otherwise.
+     */
+    public boolean isInvalidScope() {
+        if ("invalid_scope".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if this error is "server_error".
+     *
+     * @return true if this error is "server_error"; false otherwise.
+     */
+    public boolean isServerError() {
+        if ("server_error".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if this error is "temporarily_avaliable".
+     *
+     * @return true if this error is "temporarily_available"; false otherwise.
+     */
+    public boolean isTemporarilyUnavailable() {
+        if ("temporarily_available".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if this error is "invalid_grant".
+     *
+     * @return true if this error is "invalid_grant"; false otherwise.
+     */
+    public boolean isInvalidGrant() {
+        if ("invalid_grant".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    public String toString() {
+        return "error: " + this.error + " error_description: " + errorDescription;
+    }
 }

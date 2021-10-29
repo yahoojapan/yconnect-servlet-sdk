@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,15 +24,14 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
+import static org.junit.Assert.assertEquals;
+
+import javax.json.JsonObject;
 import jp.co.yahoo.yconnect.core.http.HttpHeaders;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
-
-import javax.json.JsonObject;
-
-import static org.junit.Assert.assertEquals;
 
 public class TokenClientTest {
 
@@ -49,41 +48,61 @@ public class TokenClientTest {
     @Test
     public void testFetch() throws Exception {
 
-        TokenClient client = new TokenClient("https://example.co.jp",
-                authorizationCode, redirectUri, clientId, clientSecret) {
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return new YHttpClient() {
+        TokenClient client =
+                new TokenClient(
+                        "https://example.co.jp",
+                        authorizationCode,
+                        redirectUri,
+                        clientId,
+                        clientSecret) {
                     @Override
-                    public void requestPost(String endpointUrl, HttpParameters parameters, HttpHeaders requestHeaders) {
-                        assertEquals(OAuth2GrantType.AUTHORIZATION_CODE, parameters.get("grant_type"));
-                        assertEquals(authorizationCode, parameters.get("code"));
-                        assertEquals(redirectUri, parameters.get("redirect_uri"));
+                    protected YHttpClient getYHttpClient() {
+                        return new YHttpClient() {
+                            @Override
+                            public void requestPost(
+                                    String endpointUrl,
+                                    HttpParameters parameters,
+                                    HttpHeaders requestHeaders) {
+                                assertEquals(
+                                        OAuth2GrantType.AUTHORIZATION_CODE,
+                                        parameters.get("grant_type"));
+                                assertEquals(authorizationCode, parameters.get("code"));
+                                assertEquals(redirectUri, parameters.get("redirect_uri"));
 
-                        assertEquals("application/x-www-form-urlencoded;charset=UTF-8", requestHeaders.get("Content-Type"));
-                        String credential = clientId + ":" + clientSecret;
-                        String basic = new String(Base64.encodeBase64(credential.getBytes()));
-                        assertEquals("Basic " + basic, requestHeaders.get("Authorization"));
-                    }
+                                assertEquals(
+                                        "application/x-www-form-urlencoded;charset=UTF-8",
+                                        requestHeaders.get("Content-Type"));
+                                String credential = clientId + ":" + clientSecret;
+                                String basic =
+                                        new String(Base64.encodeBase64(credential.getBytes()));
+                                assertEquals("Basic " + basic, requestHeaders.get("Authorization"));
+                            }
 
-                    @Override
-                    public HttpHeaders getResponseHeaders() {
-                        return new HttpHeaders();
-                    }
+                            @Override
+                            public HttpHeaders getResponseHeaders() {
+                                return new HttpHeaders();
+                            }
 
-                    @Override
-                    public String getResponseBody() {
-                        return "{\"access_token\":\"" + accessTokenSample + "\", \"expires_in\":" + expiresIn
-                                + ", \"refresh_token\":\"" + refreshToken + "\", \"id_token\":\"" + idToken + "\"}";
-                    }
+                            @Override
+                            public String getResponseBody() {
+                                return "{\"access_token\":\""
+                                        + accessTokenSample
+                                        + "\", \"expires_in\":"
+                                        + expiresIn
+                                        + ", \"refresh_token\":\""
+                                        + refreshToken
+                                        + "\", \"id_token\":\""
+                                        + idToken
+                                        + "\"}";
+                            }
 
-                    @Override
-                    public int getStatusCode() {
-                        return 200;
+                            @Override
+                            public int getStatusCode() {
+                                return 200;
+                            }
+                        };
                     }
                 };
-            }
-        };
 
         client.fetch();
 
@@ -98,42 +117,63 @@ public class TokenClientTest {
     public void testFetchWithCodeVerifier() throws Exception {
         String codeVerifier = "sample_code_verifier";
 
-        TokenClient client = new TokenClient("https://example.co.jp",
-                authorizationCode, redirectUri, clientId, clientSecret, codeVerifier) {
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return new YHttpClient() {
+        TokenClient client =
+                new TokenClient(
+                        "https://example.co.jp",
+                        authorizationCode,
+                        redirectUri,
+                        clientId,
+                        clientSecret,
+                        codeVerifier) {
                     @Override
-                    public void requestPost(String endpointUrl, HttpParameters parameters, HttpHeaders requestHeaders) {
-                        assertEquals(OAuth2GrantType.AUTHORIZATION_CODE, parameters.get("grant_type"));
-                        assertEquals(authorizationCode, parameters.get("code"));
-                        assertEquals(redirectUri, parameters.get("redirect_uri"));
-                        assertEquals(codeVerifier, parameters.get("code_verifier"));
+                    protected YHttpClient getYHttpClient() {
+                        return new YHttpClient() {
+                            @Override
+                            public void requestPost(
+                                    String endpointUrl,
+                                    HttpParameters parameters,
+                                    HttpHeaders requestHeaders) {
+                                assertEquals(
+                                        OAuth2GrantType.AUTHORIZATION_CODE,
+                                        parameters.get("grant_type"));
+                                assertEquals(authorizationCode, parameters.get("code"));
+                                assertEquals(redirectUri, parameters.get("redirect_uri"));
+                                assertEquals(codeVerifier, parameters.get("code_verifier"));
 
-                        assertEquals("application/x-www-form-urlencoded;charset=UTF-8", requestHeaders.get("Content-Type"));
-                        String credential = clientId + ":" + clientSecret;
-                        String basic = new String(Base64.encodeBase64(credential.getBytes()));
-                        assertEquals("Basic " + basic, requestHeaders.get("Authorization"));
-                    }
+                                assertEquals(
+                                        "application/x-www-form-urlencoded;charset=UTF-8",
+                                        requestHeaders.get("Content-Type"));
+                                String credential = clientId + ":" + clientSecret;
+                                String basic =
+                                        new String(Base64.encodeBase64(credential.getBytes()));
+                                assertEquals("Basic " + basic, requestHeaders.get("Authorization"));
+                            }
 
-                    @Override
-                    public HttpHeaders getResponseHeaders() {
-                        return new HttpHeaders();
-                    }
+                            @Override
+                            public HttpHeaders getResponseHeaders() {
+                                return new HttpHeaders();
+                            }
 
-                    @Override
-                    public String getResponseBody() {
-                        return "{\"access_token\":\"" + accessTokenSample + "\", \"expires_in\":" + expiresIn
-                                + ", \"refresh_token\":\"" + refreshToken + "\", \"id_token\":\"" + idToken + "\"}";
-                    }
+                            @Override
+                            public String getResponseBody() {
+                                return "{\"access_token\":\""
+                                        + accessTokenSample
+                                        + "\", \"expires_in\":"
+                                        + expiresIn
+                                        + ", \"refresh_token\":\""
+                                        + refreshToken
+                                        + "\", \"id_token\":\""
+                                        + idToken
+                                        + "\"}";
+                            }
 
-                    @Override
-                    public int getStatusCode() {
-                        return 200;
+                            @Override
+                            public int getStatusCode() {
+                                return 200;
+                            }
+                        };
                     }
                 };
-            }
-        };
 
         client.fetch();
 
@@ -146,38 +186,44 @@ public class TokenClientTest {
 
     @Test(expected = TokenException.class)
     public void testFetchThrowsTokenException() throws Exception {
-        RefreshTokenClient client = new RefreshTokenClient("https://example.co.jp",
-                "sample_refresh_token", "sample_client_id", "sample_client_secret") {
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return new YHttpClient() {
+        RefreshTokenClient client =
+                new RefreshTokenClient(
+                        "https://example.co.jp",
+                        "sample_refresh_token",
+                        "sample_client_id",
+                        "sample_client_secret") {
                     @Override
-                    public void requestPost(String endpointUrl, HttpParameters parameters, HttpHeaders requestHeaders) {
+                    protected YHttpClient getYHttpClient() {
+                        return new YHttpClient() {
+                            @Override
+                            public void requestPost(
+                                    String endpointUrl,
+                                    HttpParameters parameters,
+                                    HttpHeaders requestHeaders) {}
 
+                            @Override
+                            public HttpHeaders getResponseHeaders() {
+                                return new HttpHeaders();
+                            }
+
+                            @Override
+                            public String getResponseBody() {
+                                return "{\"error\":\"sample_error\", \"error_description\":\"sample_error_description\"}";
+                            }
+
+                            @Override
+                            public int getStatusCode() {
+                                return 400;
+                            }
+                        };
                     }
 
                     @Override
-                    public HttpHeaders getResponseHeaders() {
-                        return new HttpHeaders();
-                    }
-
-                    @Override
-                    public String getResponseBody() {
-                        return "{\"error\":\"sample_error\", \"error_description\":\"sample_error_description\"}";
-                    }
-
-                    @Override
-                    public int getStatusCode() {
-                        return 400;
+                    protected void checkErrorResponse(int statusCode, JsonObject jsonObject)
+                            throws TokenException {
+                        throw new TokenException("error_sample", "error_description_sample", 1000);
                     }
                 };
-            }
-
-            @Override
-            protected void checkErrorResponse(int statusCode, JsonObject jsonObject) throws TokenException {
-                throw new TokenException("error_sample", "error_description_sample", 1000);
-            }
-        };
 
         client.fetch();
     }

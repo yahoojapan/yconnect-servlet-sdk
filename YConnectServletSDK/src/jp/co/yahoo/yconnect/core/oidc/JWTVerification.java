@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,59 +24,60 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import org.apache.commons.codec.binary.Base64;
-
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.util.zip.DataFormatException;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * JSON Web Token 検証クラス
- * 
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
  *
+ * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
  */
 public class JWTVerification {
 
-  private String idTokenString;
+    private final String idTokenString;
 
-  private PublicKey publicKey;
+    private final PublicKey publicKey;
 
-  /**
-   * JWTVerificationのコンストラクタ
-   * 
-   * @param publicKey
-   * @param idTokenString
-   */
-  public JWTVerification(PublicKey publicKey, String idTokenString) {
-    this.publicKey = publicKey;
-    this.idTokenString = idTokenString;
-  }
+    /**
+     * JWTVerificationのコンストラクタ
+     *
+     * @param publicKey 公開鍵
+     * @param idTokenString IDトークン文字列
+     */
+    public JWTVerification(PublicKey publicKey, String idTokenString) {
+        this.publicKey = publicKey;
+        this.idTokenString = idTokenString;
+    }
 
-  /**
-   * headerとpayloadの部分からsignatureを生成して一致しているかどうかを返す
-   * 
-   * @return
-   * @throws DataFormatException
-   */
-  public boolean verifyJWT() throws DataFormatException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, UnsupportedEncodingException {
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(this.idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
+    /**
+     * headerとpayloadの部分からsignatureを生成して一致しているかどうかを返す
+     *
+     * @return 検証に成功するとtrue, 失敗するとfalse
+     * @throws DataFormatException IDトークンのデコードに失敗したときに発生
+     */
+    public boolean verifyJWT()
+            throws DataFormatException, NoSuchAlgorithmException, SignatureException,
+                    InvalidKeyException, UnsupportedEncodingException {
+        IdTokenDecoder idTokenDecoder = new IdTokenDecoder(this.idTokenString);
+        IdTokenObject idTokenObject = idTokenDecoder.decode();
 
-    Signature verifier = getVerifier();
-    byte[] signatureBytes = Base64.decodeBase64(idTokenObject.getSignature());
+        Signature verifier = getVerifier();
+        byte[] signatureBytes = Base64.decodeBase64(idTokenObject.getSignature());
 
-    return verifier.verify(signatureBytes);
-  }
+        return verifier.verify(signatureBytes);
+    }
 
-  private Signature getVerifier() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, UnsupportedEncodingException {
-    String[] idTokenArray = idTokenString.split("\\.");
-    String dataPart = idTokenArray[0] + "." + idTokenArray[1];
-    Signature signature = Signature.getInstance("SHA256withRSA");
-    signature.initVerify(publicKey);
-    signature.update(dataPart.getBytes("UTF-8"));
+    private Signature getVerifier()
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException,
+                    UnsupportedEncodingException {
+        String[] idTokenArray = idTokenString.split("\\.");
+        String dataPart = idTokenArray[0] + "." + idTokenArray[1];
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(publicKey);
+        signature.update(dataPart.getBytes("UTF-8"));
 
-    return signature;
-  }
-
+        return signature;
+    }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -30,168 +30,198 @@ import java.util.ArrayList;
  * IdToken Object Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class IdTokenObject {
 
-  private String type;
+    private String type;
 
-  private String algorithm;
+    private String algorithm;
 
-  private String kid;
+    private String kid;
 
-  private String iss;
+    private String iss;
 
-  private String sub;
+    private String sub;
 
-  private String ppidSub;
+    private String ppidSub;
 
-  private ArrayList<String> aud;
+    private ArrayList<String> aud;
 
-  private String nonce;
+    private String nonce;
 
-  private String atHash;
+    private String atHash;
 
-  private long exp;
+    private long exp;
 
-  private long iat;
+    private long iat;
 
-  private long authTime;
+    private long authTime;
 
-  private String signature;
+    private String signature;
 
-  public IdTokenObject() {
-  }
+    public IdTokenObject() {}
 
-  public IdTokenObject(String type, String algorithm, String kid, String iss, String sub, String ppidSub,
-      ArrayList<String> aud, String nonce, String atHash, long exp, long iat, long authTime,
-      String signature) {
-    setType(type);
-    setAlgorithm(algorithm);
-    setKid(kid);
-    setIss(iss);
-    setSub(sub);
-    setPpidSub(ppidSub);
-    setAud(aud);
-    setNonce(nonce);
-    setAtHash(atHash);
-    setExp(exp);
-    setIat(iat);
-    setAuthTime(authTime);
-    setSignature(signature);
-  }
+    public IdTokenObject(
+            String type,
+            String algorithm,
+            String kid,
+            String iss,
+            String sub,
+            String ppidSub,
+            ArrayList<String> aud,
+            String nonce,
+            String atHash,
+            long exp,
+            long iat,
+            long authTime,
+            String signature) {
+        setType(type);
+        setAlgorithm(algorithm);
+        setKid(kid);
+        setIss(iss);
+        setSub(sub);
+        setPpidSub(ppidSub);
+        setAud(aud);
+        setNonce(nonce);
+        setAtHash(atHash);
+        setExp(exp);
+        setIat(iat);
+        setAuthTime(authTime);
+        setSignature(signature);
+    }
 
-  public String getType() {
-    return this.type;
-  }
+    public String getType() {
+        return this.type;
+    }
 
-  public void setType(String type) {
-    this.type = type;
-  }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-  public String getAlgorithm() {
-    return this.algorithm;
-  }
+    public String getAlgorithm() {
+        return this.algorithm;
+    }
 
-  public void setAlgorithm(String algorithm) {
-    this.algorithm = algorithm;
-  }
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
+    }
 
-  public String getKid() {
-    return kid;
-  }
+    public String getKid() {
+        return kid;
+    }
 
-  public void setKid(String kid) {
-    this.kid = kid;
-  }
+    public void setKid(String kid) {
+        this.kid = kid;
+    }
 
-  public String getIss() {
-    return iss;
-  }
+    public String getIss() {
+        return iss;
+    }
 
-  public void setIss(String iss) {
-    this.iss = iss;
-  }
+    public void setIss(String iss) {
+        this.iss = iss;
+    }
 
-  public String getSub() {
-    return sub;
-  }
+    public String getSub() {
+        return sub;
+    }
 
-  public void setSub(String sub) {
-    this.sub = sub;
-  }
+    public void setSub(String sub) {
+        this.sub = sub;
+    }
 
-  public String getPpidSub() {
-    return ppidSub;
-  }
+    public String getPpidSub() {
+        return ppidSub;
+    }
 
-  public void setPpidSub(String ppidSub) {
-    this.ppidSub = ppidSub;
-  }
+    public void setPpidSub(String ppidSub) {
+        this.ppidSub = ppidSub;
+    }
 
-  public ArrayList<String> getAud() {
-    return aud;
-  }
+    public ArrayList<String> getAud() {
+        return aud;
+    }
 
-  public void setAud(ArrayList<String> aud) {
-    this.aud = aud;
-  }
+    public void setAud(ArrayList<String> aud) {
+        this.aud = aud;
+    }
 
-  public String getNonce() {
-    return nonce;
-  }
+    public String getNonce() {
+        return nonce;
+    }
 
-  public void setNonce(String nonce) {
-    this.nonce = nonce;
-  }
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
+    }
 
-  public String getAtHash() {
-    return atHash;
-  }
+    public String getAtHash() {
+        return atHash;
+    }
 
-  public void setAtHash(String atHash) {
-    this.atHash = atHash;
-  }
+    public void setAtHash(String atHash) {
+        this.atHash = atHash;
+    }
 
-  public long getExp() {
-    return exp;
-  }
+    public long getExp() {
+        return exp;
+    }
 
-  public void setExp(long exp) {
-    this.exp = exp;
-  }
+    public void setExp(long exp) {
+        this.exp = exp;
+    }
 
-  public long getIat() {
-    return iat;
-  }
+    public long getIat() {
+        return iat;
+    }
 
-  public void setIat(long iat) {
-    this.iat = iat;
-  }
+    public void setIat(long iat) {
+        this.iat = iat;
+    }
 
-  public long getAuthTime() {
-    return authTime;
-  }
+    public long getAuthTime() {
+        return authTime;
+    }
 
-  public void setAuthTime(long authTime) {
-    this.authTime = authTime;
-  }
+    public void setAuthTime(long authTime) {
+        this.authTime = authTime;
+    }
 
-  public String getSignature() {
-    return this.signature;
-  }
+    public String getSignature() {
+        return this.signature;
+    }
 
-  public void setSignature(String signature) {
-    this.signature = signature;
-  }
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
 
-  public String toString() {
-    String json =
-        "{" + "\"iss\":\"" + iss + "\"," + "\"sub\":\"" + sub + "\"," + "\"ppid_sub\":\"" + ppidSub + "\","
-            + "\"aud\":\"" + aud.toString() + "\"," + "\"nonce\":\"" + nonce + "\"," + "\"at_hash\":" + atHash + ","
-            + "\"exp\":" + exp + "," + "\"iat\":" + iat + "," + "\"auth_time\":" + authTime +
-        "}";
-    return json;
-  }
-
+    public String toString() {
+        return "{"
+                + "\"iss\":\""
+                + iss
+                + "\","
+                + "\"sub\":\""
+                + sub
+                + "\","
+                + "\"ppid_sub\":\""
+                + ppidSub
+                + "\","
+                + "\"aud\":\""
+                + aud.toString()
+                + "\","
+                + "\"nonce\":\""
+                + nonce
+                + "\","
+                + "\"at_hash\":"
+                + atHash
+                + ","
+                + "\"exp\":"
+                + exp
+                + ","
+                + "\"iat\":"
+                + iat
+                + ","
+                + "\"auth_time\":"
+                + authTime
+                + "}";
+    }
 }

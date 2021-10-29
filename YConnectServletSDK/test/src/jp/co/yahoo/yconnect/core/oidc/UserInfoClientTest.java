@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,98 +28,151 @@ import static org.junit.Assert.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import jp.co.yahoo.yconnect.core.oidc.UserInfoClient;
-import jp.co.yahoo.yconnect.core.oidc.UserInfoObject;
-
 import org.junit.Test;
 
 public class UserInfoClientTest {
 
-  private static String userId = "43M63NAGMHBAYMXRMY3WODOWS4";
-  private static String name = "矢風太郎";
-  private static String givenName = "太郎";
-  private static String givenNameJaKanaJp = "タロウ";
-  private static String givenNameJaHaniJp = "太郎";
-  private static String familyName = "矢風";
-  private static String familyNameJaKanaJp = "ヤフウ";
-  private static String familyNameJaHaniJp = "矢風";
-  private static String gender = "male";
-  private static String birthday = "2000";
-  private static String locale = "ja-JP";
-  private static String email = "your_email@example.com";
-  private static String emailVerified = "true";
-  private static String addressLocality = "港区";
-  private static String addressFormatted = "東京都港区";
-  private static String addressRegion = "東京都";
-  private static String addressPostalCode = "1076211";
-  private static String addressCountry = "jp";
+    @Test
+    public void testUserInfoParser()
+            throws SecurityException, NoSuchMethodException, IllegalArgumentException,
+                    IllegalAccessException, InvocationTargetException {
+        String sub = "43M63NAGMHBAYMXRMY3WODOWS4";
+        String name = "矢風太郎";
+        String givenName = "太郎";
+        String givenNameJaKanaJp = "タロウ";
+        String givenNameJaHaniJp = "太郎";
+        String familyName = "矢風";
+        String familyNameJaKanaJp = "ヤフウ";
+        String familyNameJaHaniJp = "矢風";
+        String gender = "male";
+        String birthdate = "2000";
+        String locale = "ja-JP";
+        String email = "your_email@example.com";
+        String emailVerified = "true";
+        String addressLocality = "港区";
+        String addressFormatted = "東京都港区";
+        String addressRegion = "東京都";
+        String addressPostalCode = "1076211";
+        String addressCountry = "jp";
 
-  @Test
-  public void testUserInfoParser() throws SecurityException, NoSuchMethodException,
-      IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-    final String json =
-        "{\"sub\":\"43M63NAGMHBAYMXRMY3WODOWS4\"," + "\"name\":\"矢風太郎\","
-            + "\"given_name\":\"太郎\"," + "\"given_name#ja-Kana-JP\":\"タロウ\","
-            + "\"given_name#ja-Hani-JP\":\"太郎\"," + "\"family_name\":\"矢風\","
-            + "\"family_name#ja-Kana-JP\":\"ヤフウ\"," + "\"family_name#ja-Hani-JP\":\"矢風\","
-            + "\"gender\":\"male\"," + "\"birthdate\":\"2000\"," + "\"locale\":\"ja-JP\","
-            + "\"email\":\"your_email@example.com\"," + "\"email_verified\":true,"
-            + "\"address\":{" + "\"locality\":\"港区\"," + "\"region\":\"東京都\","
-            + "\"postal_code\":\"1076211\"," + "\"country\":\"jp\","
-            + "\"formatted\":\"東京都港区\"}}";
+        final String json =
+                "{\"sub\":\""
+                        + sub
+                        + "\","
+                        + "\"name\":\""
+                        + name
+                        + "\","
+                        + "\"given_name\":\""
+                        + givenName
+                        + "\","
+                        + "\"given_name#ja-Kana-JP\":\""
+                        + givenNameJaKanaJp
+                        + "\","
+                        + "\"given_name#ja-Hani-JP\":\""
+                        + givenNameJaHaniJp
+                        + "\","
+                        + "\"family_name\":\""
+                        + familyName
+                        + "\","
+                        + "\"family_name#ja-Kana-JP\":\""
+                        + familyNameJaKanaJp
+                        + "\","
+                        + "\"family_name#ja-Hani-JP\":\""
+                        + familyNameJaHaniJp
+                        + "\","
+                        + "\"gender\":\""
+                        + gender
+                        + "\","
+                        + "\"birthdate\":\""
+                        + birthdate
+                        + "\","
+                        + "\"locale\":\""
+                        + locale
+                        + "\","
+                        + "\"email\":\""
+                        + email
+                        + "\","
+                        + "\"email_verified\":"
+                        + emailVerified
+                        + ","
+                        + "\"address\":{"
+                        + "\"locality\":\""
+                        + addressLocality
+                        + "\","
+                        + "\"region\":\""
+                        + addressRegion
+                        + "\","
+                        + "\"postal_code\":\""
+                        + addressPostalCode
+                        + "\","
+                        + "\"country\":\""
+                        + addressCountry
+                        + "\","
+                        + "\"formatted\":\""
+                        + addressFormatted
+                        + "\"}}";
 
-    UserInfoClient uic = new UserInfoClient("");
+        UserInfoClient uic = new UserInfoClient("");
 
-    Class<UserInfoClient> c = UserInfoClient.class;
-    Method uip = c.getDeclaredMethod("userInfoParser", String.class);
-    uip.setAccessible(true);
-    uip.invoke(uic, json);
-    UserInfoObject uio = uic.getUserInfoObject();
+        Class<UserInfoClient> c = UserInfoClient.class;
+        Method uip = c.getDeclaredMethod("userInfoParser", String.class);
+        uip.setAccessible(true);
+        uip.invoke(uic, json);
+        UserInfoObject uio = uic.getUserInfoObject();
 
-    assertEquals(uio.getSub(), userId);
-    assertEquals(uio.getName(), name);
-    assertEquals(uio.getGivenName(), givenName);
-    assertEquals(uio.getGivenNameJaKanaJp(), givenNameJaKanaJp);
-    assertEquals(uio.getGivenNameJaHaniJp(), givenNameJaHaniJp);
-    assertEquals(uio.getFamilyName(), familyName);
-    assertEquals(uio.getFamilyNameJaKanaJp(), familyNameJaKanaJp);
-    assertEquals(uio.getFamilyNameJaHaniJp(), familyNameJaHaniJp);
-    assertEquals(uio.getEmail(), email);
-    assertEquals(uio.getEmailVerified(), emailVerified);
-    assertEquals(uio.getGender(), gender);
-    assertEquals(uio.getBirthdate(), birthday);
-    assertEquals(uio.getLocale(), locale);
-    assertEquals(uio.getAddressLocality(), addressLocality);
-    assertEquals(uio.getAddressFormatted(), addressFormatted);
-    assertEquals(uio.getAddressRegion(), addressRegion);
-    assertEquals(uio.getAddressPostalCode(), addressPostalCode);
-    assertEquals(uio.getAddressCountry(), addressCountry);
+        assertEquals(uio.getSub(), sub);
+        assertEquals(uio.getName(), name);
+        assertEquals(uio.getGivenName(), givenName);
+        assertEquals(uio.getGivenNameJaKanaJp(), givenNameJaKanaJp);
+        assertEquals(uio.getGivenNameJaHaniJp(), givenNameJaHaniJp);
+        assertEquals(uio.getFamilyName(), familyName);
+        assertEquals(uio.getFamilyNameJaKanaJp(), familyNameJaKanaJp);
+        assertEquals(uio.getFamilyNameJaHaniJp(), familyNameJaHaniJp);
+        assertEquals(uio.getEmail(), email);
+        assertEquals(uio.getEmailVerified(), emailVerified);
+        assertEquals(uio.getGender(), gender);
+        assertEquals(uio.getBirthdate(), birthdate);
+        assertEquals(uio.getLocale(), locale);
+        assertEquals(uio.getAddressLocality(), addressLocality);
+        assertEquals(uio.getAddressFormatted(), addressFormatted);
+        assertEquals(uio.getAddressRegion(), addressRegion);
+        assertEquals(uio.getAddressPostalCode(), addressPostalCode);
+        assertEquals(uio.getAddressCountry(), addressCountry);
+    }
 
-  }
+    @Test
+    public void testUserInfoParserInvalid()
+            throws SecurityException, NoSuchMethodException, IllegalArgumentException,
+                    IllegalAccessException, InvocationTargetException {
+        final String json =
+                "{\"sub\":\"43M63NAGMHBAYMXRMY3WODOWS4\","
+                        + "\"name\":\"矢風太郎\","
+                        + "\"given_name\":\"太郎\","
+                        + "\"given_name#ja-Kana-JP\":\"タロウ\","
+                        + "\"given_name#ja-Hani-JP\":\"太郎\","
+                        + "\"family_name\":\"矢風\","
+                        + "\"family_name#ja-Kana-JP\":\"ヤフウ\","
+                        + "\"family_name#ja-Hani-JP\":\"矢風\","
+                        + "\"gender\":\"male\","
+                        + "\"birthdate\":\"2000\","
+                        + "\"locale\":\"ja-JP\","
+                        + "\"email\":\"your_email@example.com\","
+                        + "\"email_verified\":true,"
+                        + "\"address\":{"
+                        + "\"locality\":\"港区\","
+                        + "\"region\":\"東京都\","
+                        + "\"postal_code\":\"1076211\","
+                        + "\"country\":\"jp\","
+                        + "\"formatted\":\"東京都港区\"}}";
 
-  @Test
-  public void testUserInfoParserInvalid() throws SecurityException, NoSuchMethodException,
-      IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-    final String json =
-        "{\"sub\":\"43M63NAGMHBAYMXRMY3WODOWS4\"," + "\"name\":\"矢風太郎\","
-            + "\"given_name\":\"太郎\"," + "\"given_name#ja-Kana-JP\":\"タロウ\","
-            + "\"given_name#ja-Hani-JP\":\"太郎\"," + "\"family_name\":\"矢風\","
-            + "\"family_name#ja-Kana-JP\":\"ヤフウ\"," + "\"family_name#ja-Hani-JP\":\"矢風\","
-            + "\"gender\":\"male\"," + "\"birthdate\":\"2000\"," + "\"locale\":\"ja-JP\","
-            + "\"email\":\"your_email@example.com\"," + "\"email_verified\":true,"
-            + "\"address\":{" + "\"locality\":\"港区\"," + "\"region\":\"東京都\","
-            + "\"postal_code\":\"1076211\"," + "\"country\":\"jp\","
-            + "\"formatted\":\"東京都港区\"}}";
+        UserInfoClient uic = new UserInfoClient("");
 
-    UserInfoClient uic = new UserInfoClient("");
+        Class<UserInfoClient> c = UserInfoClient.class;
+        Method uip = c.getDeclaredMethod("userInfoParser", String.class);
+        uip.setAccessible(true);
+        uip.invoke(uic, json);
+        UserInfoObject uio = uic.getUserInfoObject();
 
-    Class<UserInfoClient> c = UserInfoClient.class;
-    Method uip = c.getDeclaredMethod("userInfoParser", String.class);
-    uip.setAccessible(true);
-    uip.invoke(uic, json);
-    UserInfoObject uio = uic.getUserInfoObject();
-
-    assertEquals(uio.getAdditionalValue("additional_attribute2"), "");
-  }
+        assertEquals(uio.getAdditionalValue("additional_attribute2"), "");
+    }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,24 +24,22 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-import org.junit.Test;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.StringReader;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import java.io.StringReader;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import org.junit.Test;
+
 public class AbstractTokenClientTest {
 
-    private final AbstractTokenClient client = new AbstractTokenClient(null, null, null) {
-        @Override
-        void fetch() {
-
-        }
-    };
+    private final AbstractTokenClient client =
+            new AbstractTokenClient(null, null, null) {
+                @Override
+                void fetch() {}
+            };
 
     @Test
     public void checkErrorResponse() throws Exception {
@@ -58,13 +56,21 @@ public class AbstractTokenClientTest {
         String error = "sample_error";
         String errorDescription = "sample_error_description";
         Integer errorCode = 1000;
-        String json = "{\"error\":\"" + error + "\", \"error_description\":\"" + errorDescription
-                + "\", \"error_code\":" + errorCode + "}";
+        String json =
+                "{\"error\":\""
+                        + error
+                        + "\", \"error_description\":\""
+                        + errorDescription
+                        + "\", \"error_code\":"
+                        + errorCode
+                        + "}";
         JsonReader jsonReader = Json.createReader(new StringReader(json));
         JsonObject jsonObject = jsonReader.readObject();
         jsonReader.close();
 
-        TokenException ex = assertThrows(TokenException.class, () -> client.checkErrorResponse(400, jsonObject));
+        TokenException ex =
+                assertThrows(
+                        TokenException.class, () -> client.checkErrorResponse(400, jsonObject));
 
         assertEquals(error, ex.getError());
         assertEquals(errorDescription, ex.getErrorDescription());
@@ -78,7 +84,9 @@ public class AbstractTokenClientTest {
         JsonObject jsonObject = jsonReader.readObject();
         jsonReader.close();
 
-        TokenException ex = assertThrows(TokenException.class, () -> client.checkErrorResponse(400, jsonObject));
+        TokenException ex =
+                assertThrows(
+                        TokenException.class, () -> client.checkErrorResponse(400, jsonObject));
 
         assertEquals("An unexpected error has occurred.", ex.getError());
         assertEquals("", ex.getErrorDescription());
@@ -86,12 +94,15 @@ public class AbstractTokenClientTest {
 
     @Test
     public void testErrorResponseThrowsTokenExceptionWhenStatusCodeInvalid() {
-        String json = "{\"error\":\"sample_error\", \"error_description\":\"sample_error_description\"}";
+        String json =
+                "{\"error\":\"sample_error\", \"error_description\":\"sample_error_description\"}";
         JsonReader jsonReader = Json.createReader(new StringReader(json));
         JsonObject jsonObject = jsonReader.readObject();
         jsonReader.close();
 
-        TokenException ex = assertThrows(TokenException.class, () -> client.checkErrorResponse(301, jsonObject));
+        TokenException ex =
+                assertThrows(
+                        TokenException.class, () -> client.checkErrorResponse(301, jsonObject));
 
         assertEquals("An unexpected error has occurred.", ex.getError());
         assertEquals("", ex.getErrorDescription());

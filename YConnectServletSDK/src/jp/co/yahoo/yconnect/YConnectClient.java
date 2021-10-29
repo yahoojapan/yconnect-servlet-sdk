@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -27,7 +27,6 @@ package jp.co.yahoo.yconnect;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.zip.DataFormatException;
-
 import jp.co.yahoo.yconnect.core.api.ApiClient;
 import jp.co.yahoo.yconnect.core.api.ApiClientException;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
@@ -42,427 +41,445 @@ import org.apache.commons.codec.digest.DigestUtils;
  * YConnect Client(Authorization Code Flow) Class
  *
  * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class YConnectClient {
 
-  private final static String AUTHORIZATION_ENDPOINT_URL =
-          "https://auth.login.yahoo.co.jp/yconnect/v2/authorization";
+    private static final String AUTHORIZATION_ENDPOINT_URL =
+            "https://auth.login.yahoo.co.jp/yconnect/v2/authorization";
 
-  private final static String TOKEN_ENDPOINT_URL =
-          "https://auth.login.yahoo.co.jp/yconnect/v2/token";
+    private static final String TOKEN_ENDPOINT_URL =
+            "https://auth.login.yahoo.co.jp/yconnect/v2/token";
 
-  private final static String USERINFO_ENDPOINT_URL =
-          "https://userinfo.yahooapis.jp/yconnect/v2/attribute";
+    private static final String USERINFO_ENDPOINT_URL =
+            "https://userinfo.yahooapis.jp/yconnect/v2/attribute";
 
-  private final static String PUBLIC_KEYS_ENDPOINT_URL =
-          "https://auth.login.yahoo.co.jp/yconnect/v2/public-keys";
+    private static final String PUBLIC_KEYS_ENDPOINT_URL =
+            "https://auth.login.yahoo.co.jp/yconnect/v2/public-keys";
 
-  private final static String ISSUER = "https://auth.login.yahoo.co.jp/yconnect/v2";
+    private static final String ISSUER = "https://auth.login.yahoo.co.jp/yconnect/v2";
 
-  // Default Parameters
-  private String responseType = OAuth2ResponseType.CODE;
-  private String display = OIDCDisplay.DEFAULT;
-  private String prompt = OIDCPrompt.LOGIN;
-  private String scope = null;
-  private String nonce = null;
-  private Long maxAge = null;
-  private String plainCodeChallenge = null;
+    // Default Parameters
+    private String responseType = OAuth2ResponseType.CODE;
+    private String display = OIDCDisplay.DEFAULT;
+    private String prompt = OIDCPrompt.LOGIN;
+    private String scope = null;
+    private String nonce = null;
+    private Long maxAge = null;
+    private String plainCodeChallenge = null;
 
-  private AuthorizationRequestClient requestClient;
-  private ClientCallbackUriParser responseParser;
-  private String code;
-  private BearerToken accessToken;
-  private String idToken;
-  private UserInfoObject userInfoObject;
-  private IdTokenVerification idTokenVerification;
+    private AuthorizationRequestClient requestClient;
+    private ClientCallbackUriParser responseParser;
+    private BearerToken accessToken;
+    private String idToken;
+    private UserInfoObject userInfoObject;
+    private IdTokenVerification idTokenVerification;
 
-  /**
-   * YConnectClientのコンストラクタ。
-   */
-  public YConnectClient() {}
+    /** YConnectClientのコンストラクタ。 */
+    public YConnectClient() {}
 
-  /**
-   * 初期化メソッド。 各パラメーターを設定する。
-   * 
-   * @param clientId アプリケーションID
-   * @param redirectUri リダイレクトURL
-   * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
-   */
-  public void init(String clientId, String redirectUri, String state) {
-    requestClient = getAuthorizationRequestClient(clientId);;
-    requestClient.setRedirectUri(redirectUri);
-    requestClient.setState(state);
-  }
-
-  /**
-   * 初期化メソッド。 各パラメーターを設定する。
-   * 
-   * @param clientId アプリケーションID
-   * @param redirectUri リダイレクトURL
-   * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
-   * @param responseType レスポンスタイプ（response_type）
-   * @param display テンプレートの種類（display）
-   * @param prompt クライアントが強制させたいアクション（prompt）
-   * @param scope UserInfo APIから取得できる属性情報の指定（scope）
-   * @param nonce リプレイアタック対策のランダムな文字列を指定してください
-   */
-  public void init(String clientId, String redirectUri, String state, String responseType,
-      String display, String[] prompt, String[] scope, String nonce) {
-    requestClient = getAuthorizationRequestClient(clientId);
-    requestClient.setRedirectUri(redirectUri);
-    requestClient.setState(state);
-    this.responseType = responseType;
-    this.display = display;
-    this.prompt = StringUtil.implode(prompt);
-    this.scope = StringUtil.implode(scope);
-    this.nonce = nonce;
-  }
-
-  /**
-   * 初期化メソッド。 各パラメーターを設定する。
-   *
-   * @param clientId アプリケーションID
-   * @param redirectUri リダイレクトURL
-   * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
-   * @param responseType レスポンスタイプ（response_type）
-   * @param display テンプレートの種類（display）
-   * @param prompt クライアントが強制させたいアクション（prompt）
-   * @param scope UserInfo APIから取得できる属性情報の指定（scope）
-   * @param nonce リプレイアタック対策のランダムな文字列を指定してください
-   * @param maxAge 最大認証経過時間を指定してください
-   * @param plainCodeChallenge ハッシュ化前の認可コード横取り攻撃対策文字列を指定してください
-   */
-  public void init(String clientId, String redirectUri, String state, String responseType,
-                   String display, String[] prompt, String[] scope, String nonce,
-                   Long maxAge, String plainCodeChallenge) {
-    this.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
-    this.maxAge = maxAge;
-    this.plainCodeChallenge = plainCodeChallenge;
-  }
-
-  /**
-   * AuthorizationエンドポイントへのリクエストURIを生成する。
-   * 
-   * @return リクエストURI
-   */
-  public URI generateAuthorizationUri() throws UnsupportedEncodingException {
-    requestClient.setResponseType(responseType);
-    requestClient.setParameter("display", display);
-    requestClient.setParameter("prompt", prompt);
-    if (scope != null)
-      requestClient.setParameter("scope", scope);
-    if (nonce != null)
-      requestClient.setParameter("nonce", nonce);
-    if (maxAge != null)
-      requestClient.setParameter("max_age", maxAge.toString());
-    if (plainCodeChallenge != null) {
-      requestClient.setParameter("code_challenge", generateCodeChallenge(plainCodeChallenge));
-      requestClient.setParameter("code_challenge_method",  "S256");
+    /**
+     * 初期化メソッド。 各パラメーターを設定する。
+     *
+     * @param clientId アプリケーションID
+     * @param redirectUri リダイレクトURL
+     * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
+     */
+    public void init(String clientId, String redirectUri, String state) {
+        requestClient = getAuthorizationRequestClient(clientId);
+        requestClient.setRedirectUri(redirectUri);
+        requestClient.setState(state);
     }
-    return requestClient.generateAuthorizationUri();
-  }
 
-  /**
-   * コールバックURLの認可コードが付加されているか確認する。
-   * 
-   * @param QueryString (ex. code=abc&state=xyz)
-   * @return 認可コードの有無
-   * @throws AuthorizationException
-   */
-  public boolean hasAuthorizationCode(String query) throws AuthorizationException {
-    responseParser = new ClientCallbackUriParser(query);
-    return responseParser.hasAuthorizationCode();
-  }
-
-  /**
-   * コールバックURLに認可コードが付加されているか確認する。
-   * 
-   * @param uri QueryStringを含むURIインスタンス (ex. https://example.com/callback?code=abc&state=xyz)
-   * @return 認可コードの有無
-   * @throws AuthorizationException
-   */
-  public boolean hasAuthorizationCode(URI uri) throws AuthorizationException {
-    String requesrQuery = null;
-    if (uri != null && !uri.getQuery().toString().equals("null")) {
-      requesrQuery = uri.getQuery().toString();
+    /**
+     * 初期化メソッド。 各パラメーターを設定する。
+     *
+     * @param clientId アプリケーションID
+     * @param redirectUri リダイレクトURL
+     * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
+     * @param responseType レスポンスタイプ（response_type）
+     * @param display テンプレートの種類（display）
+     * @param prompt クライアントが強制させたいアクション（prompt）
+     * @param scope UserInfo APIから取得できる属性情報の指定（scope）
+     * @param nonce リプレイアタック対策のランダムな文字列を指定してください
+     */
+    public void init(
+            String clientId,
+            String redirectUri,
+            String state,
+            String responseType,
+            String display,
+            String[] prompt,
+            String[] scope,
+            String nonce) {
+        requestClient = getAuthorizationRequestClient(clientId);
+        requestClient.setRedirectUri(redirectUri);
+        requestClient.setState(state);
+        this.responseType = responseType;
+        this.display = display;
+        this.prompt = StringUtil.implode(prompt);
+        this.scope = StringUtil.implode(scope);
+        this.nonce = nonce;
     }
-    return hasAuthorizationCode(requesrQuery);
-  }
 
-  /**
-   * 認可コードを取得する。
-   * 
-   * @param state 初期化時に指定したstate値
-   * @return 認可コードの文字列
-   * @throws AuthorizationException
-   */
-  public String getAuthorizationCode(String state) throws AuthorizationException {
-    code = responseParser.getAuthorizationCode(state);
-    return code;
-  }
+    /**
+     * 初期化メソッド。 各パラメーターを設定する。
+     *
+     * @param clientId アプリケーションID
+     * @param redirectUri リダイレクトURL
+     * @param state リクエストとコールバック間の検証用のランダムな文字列を指定してください
+     * @param responseType レスポンスタイプ（response_type）
+     * @param display テンプレートの種類（display）
+     * @param prompt クライアントが強制させたいアクション（prompt）
+     * @param scope UserInfo APIから取得できる属性情報の指定（scope）
+     * @param nonce リプレイアタック対策のランダムな文字列を指定してください
+     * @param maxAge 最大認証経過時間を指定してください
+     * @param plainCodeChallenge ハッシュ化前の認可コード横取り攻撃対策文字列を指定してください
+     */
+    public void init(
+            String clientId,
+            String redirectUri,
+            String state,
+            String responseType,
+            String display,
+            String[] prompt,
+            String[] scope,
+            String nonce,
+            Long maxAge,
+            String plainCodeChallenge) {
+        this.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
+        this.maxAge = maxAge;
+        this.plainCodeChallenge = plainCodeChallenge;
+    }
 
-  /**
-   * Tokenエンドポイントにリクエストする。
-   * 
-   * @param code 認可コード
-   * @param clientId アプリケーションID
-   * @param clientSecret シークレット
-   * @param redirectUri リダイレクトURL
-   * @throws TokenException
-   * @throws Exception
-   */
-  public void requestToken(String code, String clientId, String clientSecret, String redirectUri)
-      throws TokenException, Exception {
-    TokenClient tokenClient =
-        getTokenClient(code, redirectUri, clientId, clientSecret);
-    tokenClient.fetch();
-    accessToken = tokenClient.getAccessToken();
-    idToken = tokenClient.getIdToken();
-  }
+    /**
+     * AuthorizationエンドポイントへのリクエストURIを生成する。
+     *
+     * @return リクエストURI
+     */
+    public URI generateAuthorizationUri() throws UnsupportedEncodingException {
+        requestClient.setResponseType(responseType);
+        requestClient.setParameter("display", display);
+        requestClient.setParameter("prompt", prompt);
+        if (scope != null) requestClient.setParameter("scope", scope);
+        if (nonce != null) requestClient.setParameter("nonce", nonce);
+        if (maxAge != null) requestClient.setParameter("max_age", maxAge.toString());
+        if (plainCodeChallenge != null) {
+            requestClient.setParameter("code_challenge", generateCodeChallenge(plainCodeChallenge));
+            requestClient.setParameter("code_challenge_method", "S256");
+        }
+        return requestClient.generateAuthorizationUri();
+    }
 
-  /**
-   * Tokenエンドポイントにリクエストする。
-   *
-   * @param code 認可コード
-   * @param clientId アプリケーションID
-   * @param clientSecret シークレット
-   * @param redirectUri リダイレクトURL
-   * @param codeVerifier 認可コード横取り攻撃対策用パラメータ
-   * @throws TokenException
-   * @throws Exception
-   */
-  public void requestToken(String code, String clientId, String clientSecret, String redirectUri,
-                           String codeVerifier) throws TokenException, Exception {
-    TokenClient tokenClient =
-        getTokenClient(code, redirectUri, clientId, clientSecret, codeVerifier);
-    tokenClient.fetch();
-    accessToken = tokenClient.getAccessToken();
-    idToken = tokenClient.getIdToken();
-  }
+    /**
+     * コールバックURLの認可コードが付加されているか確認する。
+     *
+     * @param query クエリ文字列(ex. code=abc&state=xyz)
+     * @return 認可コードの有無
+     * @throws AuthorizationException クエリ文字列にエラーが含まれているときに発生
+     */
+    public boolean hasAuthorizationCode(String query) throws AuthorizationException {
+        responseParser = new ClientCallbackUriParser(query);
+        return responseParser.hasAuthorizationCode();
+    }
 
-  /**
-   * アクセストークンを取得する。
-   * 
-   * @return アクセストークンの文字列
-   */
-  public String getAccessToken() {
-    return accessToken.getAccessToken();
-  }
+    /**
+     * コールバックURLに認可コードが付加されているか確認する。
+     *
+     * @param uri QueryStringを含むURIインスタンス (ex. https://example.com/callback?code=abc&state=xyz)
+     * @return 認可コードの有無
+     * @throws AuthorizationException クエリ文字列にエラーが含まれているときに発生
+     */
+    public boolean hasAuthorizationCode(URI uri) throws AuthorizationException {
+        String requestQuery = null;
+        if (uri != null && !uri.getQuery().equals("null")) {
+            requestQuery = uri.getQuery();
+        }
+        return hasAuthorizationCode(requestQuery);
+    }
 
-  /**
-   * アクセストークンの有効期限を取得する。
-   * 
-   * @return アクセストークンの有効期限(タイムスタンプ)
-   */
-  public long getAccessTokenExpiration() {
-    return accessToken.getExpiration();
-  }
+    /**
+     * 認可コードを取得する。
+     *
+     * @param state 初期化時に指定したstate値
+     * @return 認可コードの文字列
+     * @throws AuthorizationException stateが異なるときに発生
+     */
+    public String getAuthorizationCode(String state) throws AuthorizationException {
+        return responseParser.getAuthorizationCode(state);
+    }
 
-  /**
-   * リフレッシュトークンを取得する。
-   * 
-   * @return リフレッシュトークンの文字列
-   */
-  public String getRefreshToken() {
-    return accessToken.getRefreshToken();
-  }
+    /**
+     * Tokenエンドポイントにリクエストする。
+     *
+     * @param code 認可コード
+     * @param clientId アプリケーションID
+     * @param clientSecret シークレット
+     * @param redirectUri リダイレクトURL
+     * @throws TokenException レスポンスにエラーが含まれているときに発生
+     */
+    public void requestToken(String code, String clientId, String clientSecret, String redirectUri)
+            throws TokenException {
+        TokenClient tokenClient = getTokenClient(code, redirectUri, clientId, clientSecret);
+        tokenClient.fetch();
+        accessToken = tokenClient.getAccessToken();
+        idToken = tokenClient.getIdToken();
+    }
 
-  /**
-   * IDトークンを取得する。
-   * 
-   * @return 暗号化されているIDトークンの文字列
-   */
-  public String getIdToken() {
-    return idToken;
-  }
+    /**
+     * Tokenエンドポイントにリクエストする。
+     *
+     * @param code 認可コード
+     * @param clientId アプリケーションID
+     * @param clientSecret シークレット
+     * @param redirectUri リダイレクトURL
+     * @param codeVerifier 認可コード横取り攻撃対策用パラメータ
+     * @throws TokenException レスポンスにエラーが含まれているときに発生
+     */
+    public void requestToken(
+            String code,
+            String clientId,
+            String clientSecret,
+            String redirectUri,
+            String codeVerifier)
+            throws TokenException {
+        TokenClient tokenClient =
+                getTokenClient(code, redirectUri, clientId, clientSecret, codeVerifier);
+        tokenClient.fetch();
+        accessToken = tokenClient.getAccessToken();
+        idToken = tokenClient.getIdToken();
+    }
 
-  /**
-   * 暗号化されたIDトークンを復号する。
-   * 
-   * @param idTokenString 取得したIDトークンの文字列
-   * @return IDトークンの文字列から生成したIdTokenObjectを返却
-   * @throws DataFormatException
-   */
-  public IdTokenObject decodeIdToken(String idTokenString) throws DataFormatException {
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    return idTokenDecoder.decode();
-  }
+    /**
+     * アクセストークンを取得する。
+     *
+     * @return アクセストークンの文字列
+     */
+    public String getAccessToken() {
+        return accessToken.getAccessToken();
+    }
 
-  /**
-   * トークン自体に異常があるかどうかを判定する。
-   * 
-   * @param nonce Authorizationリクエスト時に指定したnonce値
-   * @param clientId アプリケーションID
-   * @param idTokenString 取得したIDトークンの文字列
-   * @return IDトークン検証が正しい場合にはtrue, それ以外の場合にはfalseを返却
-   * @throws DataFormatException 無効なIDトークンが指定された場合に発生します
-   */
-  public boolean verifyIdToken(String nonce, String clientId, String idTokenString)
-          throws DataFormatException, ApiClientException {
-    PublicKeysClient publicKeysClient = getPublicKeysClient();
-    publicKeysClient.fetchResource(PUBLIC_KEYS_ENDPOINT_URL);
-    PublicKeysObject publicKeysObject = publicKeysClient.getPublicKeysObject();
+    /**
+     * アクセストークンの有効期限を取得する。
+     *
+     * @return アクセストークンの有効期限(タイムスタンプ)
+     */
+    public long getAccessTokenExpiration() {
+        return accessToken.getExpiration();
+    }
 
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
-    this.idTokenVerification = getIdTokenVerification();
-    return this.idTokenVerification.check(ISSUER, nonce, clientId, idTokenObject, publicKeysObject,
-        idTokenString, accessToken.getAccessToken());
-  }
+    /**
+     * リフレッシュトークンを取得する。
+     *
+     * @return リフレッシュトークンの文字列
+     */
+    public String getRefreshToken() {
+        return accessToken.getRefreshToken();
+    }
 
-  /**
-   * IdTokenの値が一致していなかった際のエラーコードを返却する。
-   * 
-   * @return エラーコード
-   */
-  public String getIdTokenErrorMessage() {
-    return idTokenVerification.getErrorMessage();
-  }
+    /**
+     * IDトークンを取得する。
+     *
+     * @return 暗号化されているIDトークンの文字列
+     */
+    public String getIdToken() {
+        return idToken;
+    }
 
-  /**
-   * IdTokenの値が一致していなかった際のエラー概要を返却する。
-   * 
-   * @return エラー概要
-   */
-  public String getIdTokenErrorDescriptionMessage() {
-    return idTokenVerification.getErrorDescriptionMessage();
-  }
+    /**
+     * 暗号化されたIDトークンを復号する。
+     *
+     * @param idTokenString 取得したIDトークンの文字列
+     * @return IDトークンの文字列から生成したIdTokenObjectを返却
+     * @throws DataFormatException 入力された文字列がJWTフォーマットではないときに発生
+     */
+    public IdTokenObject decodeIdToken(String idTokenString) throws DataFormatException {
+        IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
+        return idTokenDecoder.decode();
+    }
 
-  /**
-   * アクセストークンを更新する。
-   * 
-   * @param refreshToken リフレッシュトークンの文字列
-   * @param clientId アプリケーションID
-   * @param clientSecret シークレット
-   * @throws TokenException
-   * @throws Exception
-   */
-  public void refreshToken(String refreshToken, String clientId, String clientSecret)
-      throws TokenException, Exception {
-    RefreshTokenClient refreshTokenClient = getRefreshTokenClient(refreshToken, clientId, clientSecret);
-    refreshTokenClient.fetch();
-    accessToken = refreshTokenClient.getAccessToken();
-  }
+    /**
+     * トークン自体に異常があるかどうかを判定する。
+     *
+     * @param nonce Authorizationリクエスト時に指定したnonce値
+     * @param clientId アプリケーションID
+     * @param idTokenString 取得したIDトークンの文字列
+     * @return IDトークン検証が正しい場合にはtrue, それ以外の場合にはfalseを返却
+     * @throws DataFormatException 無効なIDトークンが指定された場合に発生します
+     */
+    public boolean verifyIdToken(String nonce, String clientId, String idTokenString)
+            throws DataFormatException, ApiClientException {
+        PublicKeysClient publicKeysClient = getPublicKeysClient();
+        publicKeysClient.fetchResource(PUBLIC_KEYS_ENDPOINT_URL);
+        PublicKeysObject publicKeysObject = publicKeysClient.getPublicKeysObject();
 
-  /**
-   * UserInfoエンドポイントにリクエストする。
-   * 
-   * @param accessTokenString アクセストークンの文字列
-   * @throws ApiClientException
-   * @throws Exception
-   */
-  public void requestUserInfo(String accessTokenString) throws ApiClientException, Exception {
-    UserInfoClient userInfoClient = getUserInfoClient(accessTokenString);
-    userInfoClient.fetchResouce(USERINFO_ENDPOINT_URL, ApiClient.GET_METHOD);
-    userInfoObject = userInfoClient.getUserInfoObject();
-  }
+        IdTokenDecoder idTokenDecoder = new IdTokenDecoder(idTokenString);
+        IdTokenObject idTokenObject = idTokenDecoder.decode();
+        this.idTokenVerification = getIdTokenVerification();
+        return this.idTokenVerification.check(
+                ISSUER,
+                nonce,
+                clientId,
+                idTokenObject,
+                publicKeysObject,
+                idTokenString,
+                accessToken.getAccessToken());
+    }
 
-  /**
-   * UserInfoオブジェクトを取得する。
-   * 
-   * @return UserInfo情報のオブジェクト
-   */
-  public UserInfoObject getUserInfoObject() {
-    return userInfoObject;
-  }
+    /**
+     * IdTokenの値が一致していなかった際のエラーコードを返却する。
+     *
+     * @return エラーコード
+     */
+    public String getIdTokenErrorMessage() {
+        return idTokenVerification.getErrorMessage();
+    }
 
-  /**
-   * レスポンスタイプを設定する。
-   * 
-   * @param responseType レスポンスタイプ（response_type）
-   */
-  public void setResponseType(String responseType) {
-    this.responseType = responseType;
-  }
+    /**
+     * IdTokenの値が一致していなかった際のエラー概要を返却する。
+     *
+     * @return エラー概要
+     */
+    public String getIdTokenErrorDescriptionMessage() {
+        return idTokenVerification.getErrorDescriptionMessage();
+    }
 
-  /**
-   * displayを設定する。
-   * 
-   * @param display テンプレートの種類（display）
-   */
-  public void setDisplay(String display) {
-    this.display = display;
-  }
+    /**
+     * アクセストークンを更新する。
+     *
+     * @param refreshToken リフレッシュトークンの文字列
+     * @param clientId アプリケーションID
+     * @param clientSecret シークレット
+     * @throws TokenException レスポンスにエラーが含まれているときに発生
+     */
+    public void refreshToken(String refreshToken, String clientId, String clientSecret)
+            throws TokenException {
+        RefreshTokenClient refreshTokenClient =
+                getRefreshTokenClient(refreshToken, clientId, clientSecret);
+        refreshTokenClient.fetch();
+        accessToken = refreshTokenClient.getAccessToken();
+    }
 
-  /**
-   * promptを設定する。
-   * 
-   * @param prompt クライアントが強制させたいアクション（prompt）
-   */
-  public void setPrompt(String[] prompt) {
-    this.prompt = StringUtil.implode(prompt);
-  }
+    /**
+     * UserInfoエンドポイントにリクエストする。
+     *
+     * @param accessTokenString アクセストークンの文字列
+     * @throws ApiClientException 定義されていないメソッドを指定したときに発生
+     */
+    public void requestUserInfo(String accessTokenString) throws ApiClientException {
+        UserInfoClient userInfoClient = getUserInfoClient(accessTokenString);
+        userInfoClient.fetchResource(USERINFO_ENDPOINT_URL, ApiClient.GET_METHOD);
+        userInfoObject = userInfoClient.getUserInfoObject();
+    }
 
-  /**
-   * scopeを設定する。
-   * 
-   * @param scope UserInfo APIから取得できる属性情報の指定（scope）
-   */
-  public void setScope(String[] scope) {
-    this.scope = StringUtil.implode(scope);
-  }
+    /**
+     * UserInfoオブジェクトを取得する。
+     *
+     * @return UserInfo情報のオブジェクト
+     */
+    public UserInfoObject getUserInfoObject() {
+        return userInfoObject;
+    }
 
-  /**
-   * nonceを設定する。
-   * 
-   * @param nonce リプレイアタック対策のランダムな文字列を指定してください
-   */
-  public void setNonce(String nonce) {
-    this.nonce = nonce;
-  }
+    /**
+     * レスポンスタイプを設定する。
+     *
+     * @param responseType レスポンスタイプ（response_type）
+     */
+    public void setResponseType(String responseType) {
+        this.responseType = responseType;
+    }
 
-  /**
-   * SSL証明書チェックを無効にする。
-   */
-  public static void disableSSLCheck() {
-    YHttpClient.disableSSLCheck();
-  }
+    /**
+     * displayを設定する。
+     *
+     * @param display テンプレートの種類（display）
+     */
+    public void setDisplay(String display) {
+        this.display = display;
+    }
 
-  /**
-   * SSL証明書チェックを有効にする。
-   */
-  public static void enableSSLCheck() {
-    YHttpClient.enableSSLCheck();
-  }
+    /**
+     * promptを設定する。
+     *
+     * @param prompt クライアントが強制させたいアクション（prompt）
+     */
+    public void setPrompt(String[] prompt) {
+        this.prompt = StringUtil.implode(prompt);
+    }
 
-  protected AuthorizationRequestClient getAuthorizationRequestClient(String clientId) {
-    return new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
-  }
+    /**
+     * scopeを設定する。
+     *
+     * @param scope UserInfo APIから取得できる属性情報の指定（scope）
+     */
+    public void setScope(String[] scope) {
+        this.scope = StringUtil.implode(scope);
+    }
 
-  protected TokenClient getTokenClient(String code, String redirectUri, String clientId, String clientSecret) {
-    return new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret);
-  }
+    /**
+     * nonceを設定する。
+     *
+     * @param nonce リプレイアタック対策のランダムな文字列を指定してください
+     */
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
+    }
 
-  protected TokenClient getTokenClient(String code, String redirectUri, String clientId, String clientSecret,
-                                       String codeVerifier) {
-    return new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret, codeVerifier);
-  }
+    /** SSL証明書チェックを無効にする。 */
+    public static void disableSSLCheck() {
+        YHttpClient.disableSSLCheck();
+    }
 
-  protected PublicKeysClient getPublicKeysClient() {
-    return new PublicKeysClient();
-  }
+    /** SSL証明書チェックを有効にする。 */
+    public static void enableSSLCheck() {
+        YHttpClient.enableSSLCheck();
+    }
 
-  protected RefreshTokenClient getRefreshTokenClient(String refreshToken, String clientId, String clientSecret) {
-    return new RefreshTokenClient(TOKEN_ENDPOINT_URL, refreshToken, clientId, clientSecret);
-  }
+    protected AuthorizationRequestClient getAuthorizationRequestClient(String clientId) {
+        return new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
+    }
 
-  protected UserInfoClient getUserInfoClient(String accessTokenString) {
-    return new UserInfoClient(accessTokenString);
-  }
+    protected TokenClient getTokenClient(
+            String code, String redirectUri, String clientId, String clientSecret) {
+        return new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret);
+    }
 
-  protected IdTokenVerification getIdTokenVerification() {
-    return new IdTokenVerification();
-  }
+    protected TokenClient getTokenClient(
+            String code,
+            String redirectUri,
+            String clientId,
+            String clientSecret,
+            String codeVerifier) {
+        return new TokenClient(
+                TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret, codeVerifier);
+    }
 
-  /**
-   * codeChallengeを生成する。
-   *
-   * @param plainCodeChallenge ハッシュ化前のcodeChallenge
-   * @return SHA-256でハッシュ化されたcode challenge
-   */
-  private String generateCodeChallenge(String plainCodeChallenge) throws UnsupportedEncodingException {
-    byte[] hashBytes = DigestUtils.sha256(plainCodeChallenge.getBytes("UTF-8"));
-    return Base64.encodeBase64URLSafeString(hashBytes);
-  }
+    protected PublicKeysClient getPublicKeysClient() {
+        return new PublicKeysClient();
+    }
+
+    protected RefreshTokenClient getRefreshTokenClient(
+            String refreshToken, String clientId, String clientSecret) {
+        return new RefreshTokenClient(TOKEN_ENDPOINT_URL, refreshToken, clientId, clientSecret);
+    }
+
+    protected UserInfoClient getUserInfoClient(String accessTokenString) {
+        return new UserInfoClient(accessTokenString);
+    }
+
+    protected IdTokenVerification getIdTokenVerification() {
+        return new IdTokenVerification();
+    }
+
+    /**
+     * codeChallengeを生成する。
+     *
+     * @param plainCodeChallenge ハッシュ化前のcodeChallenge
+     * @return SHA-256でハッシュ化されたcode challenge
+     */
+    private String generateCodeChallenge(String plainCodeChallenge)
+            throws UnsupportedEncodingException {
+        byte[] hashBytes = DigestUtils.sha256(plainCodeChallenge.getBytes("UTF-8"));
+        return Base64.encodeBase64URLSafeString(hashBytes);
+    }
 }

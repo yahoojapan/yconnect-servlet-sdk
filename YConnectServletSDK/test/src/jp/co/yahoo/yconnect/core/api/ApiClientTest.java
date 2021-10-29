@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,29 +24,28 @@
 
 package jp.co.yahoo.yconnect.core.api;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import jp.co.yahoo.yconnect.core.http.HttpHeaders;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-
 public class ApiClientTest {
 
-    private int statusCode = 200;
-    private String statusMessage = "Sample Message";
+    private final int statusCode = 200;
+    private final String statusMessage = "Sample Message";
     private HttpHeaders headers = new HttpHeaders();
-    private String response = "Sample Body";
+    private final String response = "Sample Body";
 
     @Test
     public void testGetFetchResource() throws Exception {
         ApiClient client = getMockApiClient();
-        client.fetchResouce("http;//example.com", ApiClient.GET_METHOD);
+        client.fetchResource("http;//example.com", ApiClient.GET_METHOD);
 
         assertEquals(statusCode, client.getStatusCode());
         assertEquals(statusMessage, client.getStatusMessage());
@@ -57,7 +56,7 @@ public class ApiClientTest {
     @Test
     public void testPostFetchResource() throws Exception {
         ApiClient client = getMockApiClient();
-        client.fetchResouce("http;//example.com", ApiClient.POST_METHOD);
+        client.fetchResource("http;//example.com", ApiClient.POST_METHOD);
 
         assertEquals(statusCode, client.getStatusCode());
         assertEquals(statusMessage, client.getStatusMessage());
@@ -66,61 +65,70 @@ public class ApiClientTest {
     }
 
     @Test()
-    public void testFetchResourceThrowsApiClientException() throws Exception {
+    public void testFetchResourceThrowsApiClientException() {
         ApiClient client = getMockApiClient();
 
-        ApiClientException ex = assertThrows(ApiClientException.class, () ->
-                client.fetchResouce("http;//example.com", "DELETE"));
+        ApiClientException ex =
+                assertThrows(
+                        ApiClientException.class,
+                        () -> client.fetchResource("http;//example.com", "DELETE"));
         assertEquals(ex.getError(), "Undefined Http method.");
         assertEquals(ex.getMessage(), "");
     }
 
     @Test
-    public void testErrorFetchResourceByResponseCode() throws Exception {
+    public void testErrorFetchResourceByResponseCode() {
         int responseCode = 404;
         String responseMessage = "Not Found.";
 
-        ApiClient client = new ApiClient() {
-            @Override
-            protected YHttpClient newHttpClient() {
-                return new YHttpClient() {
+        ApiClient client =
+                new ApiClient() {
                     @Override
-                    public void requestGet(String url, HttpParameters parameters, HttpHeaders headers) {
-                    }
+                    protected YHttpClient newHttpClient() {
+                        return new YHttpClient() {
+                            @Override
+                            public void requestGet(
+                                    String url, HttpParameters parameters, HttpHeaders headers) {}
 
-                    @Override
-                    public void requestPost(String url, HttpParameters parameters, HttpHeaders headers) {
-                    }
+                            @Override
+                            public void requestPost(
+                                    String url, HttpParameters parameters, HttpHeaders headers) {}
 
-                    @Override
-                    public int getStatusCode() {
-                        return responseCode;
-                    }
+                            @Override
+                            public int getStatusCode() {
+                                return responseCode;
+                            }
 
-                    @Override
-                    public String getStatusMessage() {
-                        return responseMessage;
-                    }
+                            @Override
+                            public String getStatusMessage() {
+                                return responseMessage;
+                            }
 
-                    @Override
-                    public HttpHeaders getResponseHeaders() {
-                        return headers;
-                    }
+                            @Override
+                            public HttpHeaders getResponseHeaders() {
+                                return headers;
+                            }
 
-                    @Override
-                    public String getResponseBody() {
-                        return response;
+                            @Override
+                            public String getResponseBody() {
+                                return response;
+                            }
+                        };
                     }
                 };
-            }
-        };
 
-        String error = "Failed Request.(status code: " + responseCode
-                + " status message: " + responseMessage + ")";
+        String error =
+                "Failed Request.(status code: "
+                        + responseCode
+                        + " status message: "
+                        + responseMessage
+                        + ")";
         String message = headers.toString();
 
-        ApiClientException ex = assertThrows(ApiClientException.class, () ->
-                client.fetchResouce("http;//example.com", ApiClient.GET_METHOD));
+        ApiClientException ex =
+                assertThrows(
+                        ApiClientException.class,
+                        () -> client.fetchResource("http;//example.com", ApiClient.GET_METHOD));
         assertEquals(ex.getError(), error);
         assertEquals(ex.getMessage(), message);
     }
@@ -129,46 +137,54 @@ public class ApiClientTest {
     public void testErrorFetchResourceByWwwAuthHeader() {
         String error = "Page not found.";
         String errorDescription = "/info is not found.";
-        ApiClient client = new ApiClient() {
-            @Override
-            protected YHttpClient newHttpClient() {
-                return new YHttpClient() {
+        ApiClient client =
+                new ApiClient() {
                     @Override
-                    public void requestGet(String url, HttpParameters parameters, HttpHeaders headers) {
-                    }
+                    protected YHttpClient newHttpClient() {
+                        return new YHttpClient() {
+                            @Override
+                            public void requestGet(
+                                    String url, HttpParameters parameters, HttpHeaders headers) {}
 
-                    @Override
-                    public void requestPost(String url, HttpParameters parameters, HttpHeaders headers) {
-                    }
+                            @Override
+                            public void requestPost(
+                                    String url, HttpParameters parameters, HttpHeaders headers) {}
 
-                    @Override
-                    public int getStatusCode() {
-                        return 404;
-                    }
+                            @Override
+                            public int getStatusCode() {
+                                return 404;
+                            }
 
-                    @Override
-                    public String getStatusMessage() {
-                        return "Not Found.";
-                    }
+                            @Override
+                            public String getStatusMessage() {
+                                return "Not Found.";
+                            }
 
-                    @Override
-                    public HttpHeaders getResponseHeaders() {
-                        headers = new HttpHeaders();
-                        headers.put("WWW-Authenticate",
-                                "\"error\"=\"" + error + "\",\"error_description\"=\"" + errorDescription + "\"");
-                        return headers;
-                    }
+                            @Override
+                            public HttpHeaders getResponseHeaders() {
+                                headers = new HttpHeaders();
+                                headers.put(
+                                        "WWW-Authenticate",
+                                        "\"error\"=\""
+                                                + error
+                                                + "\",\"error_description\"=\""
+                                                + errorDescription
+                                                + "\"");
+                                return headers;
+                            }
 
-                    @Override
-                    public String getResponseBody() {
-                        return response;
+                            @Override
+                            public String getResponseBody() {
+                                return response;
+                            }
+                        };
                     }
                 };
-            }
-        };
 
-        ApiClientException ex = assertThrows(ApiClientException.class, () ->
-                client.fetchResouce("http;//example.com", ApiClient.GET_METHOD));
+        ApiClientException ex =
+                assertThrows(
+                        ApiClientException.class,
+                        () -> client.fetchResource("http;//example.com", ApiClient.GET_METHOD));
         assertEquals(ex.getError(), error);
         assertEquals(ex.getMessage(), errorDescription);
     }
@@ -206,10 +222,18 @@ public class ApiClientTest {
         String error = "Page not found.";
         String errorDescription = "/info is not found.";
 
-        Method checkErrorResponseMethod = ApiClient.class.getDeclaredMethod("extractWWWAuthHeader", String.class);
+        Method checkErrorResponseMethod =
+                ApiClient.class.getDeclaredMethod("extractWWWAuthHeader", String.class);
         checkErrorResponseMethod.setAccessible(true);
-        HashMap<?,?> result = (HashMap<?,?>)checkErrorResponseMethod
-                .invoke(client, "\"error\"=\"" + error + "\",\"error_description\"=\"" + errorDescription + "\"");
+        HashMap<?, ?> result =
+                (HashMap<?, ?>)
+                        checkErrorResponseMethod.invoke(
+                                client,
+                                "\"error\"=\""
+                                        + error
+                                        + "\",\"error_description\"=\""
+                                        + errorDescription
+                                        + "\"");
 
         assertEquals(result.get("error"), error);
         assertEquals(result.get("error_description"), errorDescription);
@@ -221,12 +245,12 @@ public class ApiClientTest {
             protected YHttpClient newHttpClient() {
                 return new YHttpClient() {
                     @Override
-                    public void requestGet(String url, HttpParameters parameters, HttpHeaders headers) {
-                    }
+                    public void requestGet(
+                            String url, HttpParameters parameters, HttpHeaders headers) {}
 
                     @Override
-                    public void requestPost(String url, HttpParameters parameters, HttpHeaders headers) {
-                    }
+                    public void requestPost(
+                            String url, HttpParameters parameters, HttpHeaders headers) {}
 
                     @Override
                     public int getStatusCode() {
@@ -255,6 +279,6 @@ public class ApiClientTest {
     private HttpHeaders getRequestHeaders(ApiClient client) throws Exception {
         Field requestHeadersFiled = ApiClient.class.getDeclaredField("requestHeaders");
         requestHeadersFiled.setAccessible(true);
-        return  (HttpHeaders) requestHeadersFiled.get(client);
+        return (HttpHeaders) requestHeadersFiled.get(client);
     }
 }

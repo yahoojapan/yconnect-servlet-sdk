@@ -40,6 +40,6 @@ spotless {
         importOrder()
         removeUnusedImports()
 
-        googleJavaFormat()
+        googleJavaFormat().aosp()
     }
 }

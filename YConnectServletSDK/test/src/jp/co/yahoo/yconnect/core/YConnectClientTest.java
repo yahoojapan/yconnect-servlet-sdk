@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,6 +24,15 @@
 
 package jp.co.yahoo.yconnect.core;
 
+import static org.junit.Assert.*;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.zip.DataFormatException;
 import jp.co.yahoo.yconnect.YConnectClient;
 import jp.co.yahoo.yconnect.core.api.ApiClientException;
 import jp.co.yahoo.yconnect.core.http.HttpHeaders;
@@ -35,55 +44,40 @@ import jp.co.yahoo.yconnect.core.util.StringUtil;
 import jp.co.yahoo.yconnect.util.IdTokenGenerator;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.zip.DataFormatException;
-
-import static org.junit.Assert.*;
-
 public class YConnectClientTest {
 
-    private final static String AUTHORIZATION_ENDPOINT_URL =
+    private static final String AUTHORIZATION_ENDPOINT_URL =
             "https://auth.login.yahoo.co.jp/yconnect/v2/authorization";
 
-    private final static String TOKEN_ENDPOINT_URL =
+    private static final String TOKEN_ENDPOINT_URL =
             "https://auth.login.yahoo.co.jp/yconnect/v2/token";
 
-    private final static String USERINFO_ENDPOINT_URL =
-            "https://userinfo.yahooapis.jp/yconnect/v2/attribute";
-
-    private final static String PUBLIC_KEYS_ENDPOINT_URL =
-            "https://auth.login.yahoo.co.jp/yconnect/v2/public-keys";
-
-    private final static String ISSUER = "https://auth.login.yahoo.co.jp/yconnect/v2";
+    private static final String ISSUER = "https://auth.login.yahoo.co.jp/yconnect/v2";
 
     private final String responseType = OAuth2ResponseType.CODE;
     private final String clientId = "sample_client_id";
     private final String clientSecret = "clientSecret";
     private final String redirectUri = "https://example.co.jp/callback";
     private final String display = OIDCDisplay.DEFAULT;
-    private final String[] prompt = new String[]{ OIDCPrompt.DEFAULT };
-    private final String[] scope = new String[]{ OIDCScope.OPENID, OIDCScope.EMAIL };
+    private final String[] prompt = new String[] {OIDCPrompt.DEFAULT};
+    private final String[] scope = new String[] {OIDCScope.OPENID, OIDCScope.EMAIL};
     private final String state = "sampleState";
     private final String nonce = "sampleNonce";
-    private final Long maxAge = 3600L;
     private final String plainCodeChallenge = "samplePlainCodeChallenge";
-    private final String codeChallengeMethod = "S256";
 
     @Test
     public void testGenerateAuthorizationUriInitializedThreeParams() throws Exception {
-        AuthorizationRequestClient client = new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
+        AuthorizationRequestClient client =
+                new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected AuthorizationRequestClient getAuthorizationRequestClient(String clientId) {
-                return client;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected AuthorizationRequestClient getAuthorizationRequestClient(
+                            String clientId) {
+                        return client;
+                    }
+                };
 
         explicit.init(clientId, redirectUri, state);
         explicit.setResponseType(responseType);
@@ -105,14 +99,17 @@ public class YConnectClientTest {
 
     @Test
     public void testGenerateAuthorizationUriInitializedEightParams() throws Exception {
-        AuthorizationRequestClient client = new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
+        AuthorizationRequestClient client =
+                new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected AuthorizationRequestClient getAuthorizationRequestClient(String clientId) {
-                return client;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected AuthorizationRequestClient getAuthorizationRequestClient(
+                            String clientId) {
+                        return client;
+                    }
+                };
 
         explicit.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
 
@@ -133,16 +130,30 @@ public class YConnectClientTest {
 
     @Test
     public void testGenerateAuthorizationUriInitializedTenParams() throws Exception {
-        AuthorizationRequestClient client = new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
+        AuthorizationRequestClient client =
+                new AuthorizationRequestClient(AUTHORIZATION_ENDPOINT_URL, clientId);
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected AuthorizationRequestClient getAuthorizationRequestClient(String clientId) {
-                return client;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected AuthorizationRequestClient getAuthorizationRequestClient(
+                            String clientId) {
+                        return client;
+                    }
+                };
 
-        explicit.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce, maxAge, plainCodeChallenge);
+        Long maxAge = 3600L;
+        explicit.init(
+                clientId,
+                redirectUri,
+                state,
+                responseType,
+                display,
+                prompt,
+                scope,
+                nonce,
+                maxAge,
+                plainCodeChallenge);
         explicit.setResponseType(responseType);
         explicit.setPrompt(prompt);
         explicit.setDisplay(display);
@@ -154,7 +165,8 @@ public class YConnectClientTest {
         parametersField.setAccessible(true);
         HttpParameters httpParameters = (HttpParameters) parametersField.get(client);
 
-        Method generateCodeChallengeMethod = YConnectClient.class.getDeclaredMethod("generateCodeChallenge", String.class);
+        Method generateCodeChallengeMethod =
+                YConnectClient.class.getDeclaredMethod("generateCodeChallenge", String.class);
         generateCodeChallengeMethod.setAccessible(true);
 
         assertEquals(redirectUri, httpParameters.get("redirect_uri"));
@@ -164,7 +176,10 @@ public class YConnectClientTest {
         assertEquals(StringUtil.implode(scope), httpParameters.get("scope"));
         assertEquals(nonce, httpParameters.get("nonce"));
         assertEquals(maxAge.toString(), httpParameters.get("max_age"));
-        assertEquals(generateCodeChallengeMethod.invoke(explicit, plainCodeChallenge), httpParameters.get("code_challenge"));
+        assertEquals(
+                generateCodeChallengeMethod.invoke(explicit, plainCodeChallenge),
+                httpParameters.get("code_challenge"));
+        String codeChallengeMethod = "S256";
         assertEquals(codeChallengeMethod, httpParameters.get("code_challenge_method"));
     }
 
@@ -199,10 +214,12 @@ public class YConnectClientTest {
     }
 
     @Test(expected = AuthorizationException.class)
-    public void testHasAuthorizationCodeThrowsAuthorizationException() throws AuthorizationException {
+    public void testHasAuthorizationCodeThrowsAuthorizationException()
+            throws AuthorizationException {
         YConnectClient explicit = new YConnectClient();
 
-        explicit.hasAuthorizationCode("error=sample_error&error_description=sample_error_description");
+        explicit.hasAuthorizationCode(
+                "error=sample_error&error_description=sample_error_description");
     }
 
     @Test
@@ -245,56 +262,70 @@ public class YConnectClientTest {
         String refreshToken = "sample_refresh_token";
         String idTokenString = "sample_id_token";
 
-        YHttpClient httpClient = new YHttpClient() {
-            @Override
-            public void requestPost(String endpointUrl, HttpParameters parameters, HttpHeaders requestHeaders) {
-                assertEquals(OAuth2GrantType.AUTHORIZATION_CODE, parameters.get("grant_type"));
-                assertEquals(code, parameters.get("code"));
-                assertEquals(redirectUri, parameters.get("redirect_uri"));
-            }
+        YHttpClient httpClient =
+                new YHttpClient() {
+                    @Override
+                    public void requestPost(
+                            String endpointUrl,
+                            HttpParameters parameters,
+                            HttpHeaders requestHeaders) {
+                        assertEquals(
+                                OAuth2GrantType.AUTHORIZATION_CODE, parameters.get("grant_type"));
+                        assertEquals(code, parameters.get("code"));
+                        assertEquals(redirectUri, parameters.get("redirect_uri"));
+                    }
 
-            @Override
-            public HttpHeaders getResponseHeaders() {
-                return new HttpHeaders();
-            }
+                    @Override
+                    public HttpHeaders getResponseHeaders() {
+                        return new HttpHeaders();
+                    }
 
-            @Override
-            public String getResponseBody() {
-                return "{\"access_token\":\"" + accessTokenString + "\", \"expires_in\":" + expiresIn
-                        + ", \"refresh_token\":\"" + refreshToken + "\", \"id_token\":\"" + idTokenString + "\"}";
-            }
+                    @Override
+                    public String getResponseBody() {
+                        return "{\"access_token\":\""
+                                + accessTokenString
+                                + "\", \"expires_in\":"
+                                + expiresIn
+                                + ", \"refresh_token\":\""
+                                + refreshToken
+                                + "\", \"id_token\":\""
+                                + idTokenString
+                                + "\"}";
+                    }
 
-            @Override
-            public int getStatusCode() {
-                return 200;
-            }
-        };
+                    @Override
+                    public int getStatusCode() {
+                        return 200;
+                    }
+                };
 
-        TokenClient tokenClient = new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri,
-                clientId, clientSecret) {
+        TokenClient tokenClient =
+                new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri, clientId, clientSecret) {
 
-            @Override
-            public BearerToken getAccessToken() {
-                return new BearerToken(accessTokenString, expiresIn, refreshToken);
-            }
+                    @Override
+                    public BearerToken getAccessToken() {
+                        return new BearerToken(accessTokenString, expiresIn, refreshToken);
+                    }
 
-            @Override
-            public String getIdToken() {
-                return idTokenString;
-            }
+                    @Override
+                    public String getIdToken() {
+                        return idTokenString;
+                    }
 
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return httpClient;
-            }
-        };
+                    @Override
+                    protected YHttpClient getYHttpClient() {
+                        return httpClient;
+                    }
+                };
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected TokenClient getTokenClient(String code, String redirectUri, String clientId, String clientSecret) {
-                return tokenClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected TokenClient getTokenClient(
+                            String code, String redirectUri, String clientId, String clientSecret) {
+                        return tokenClient;
+                    }
+                };
 
         explicit.requestToken(code, redirectUri, clientId, clientSecret);
 
@@ -312,58 +343,81 @@ public class YConnectClientTest {
         String refreshToken = "sample_refresh_token";
         String idTokenString = "sample_id_token";
 
-        YHttpClient httpClient = new YHttpClient() {
-            @Override
-            public void requestPost(String endpointUrl, HttpParameters parameters, HttpHeaders requestHeaders) {
-                assertEquals(OAuth2GrantType.AUTHORIZATION_CODE, parameters.get("grant_type"));
-                assertEquals(code, parameters.get("code"));
-                assertEquals(redirectUri, parameters.get("redirect_uri"));
-                assertEquals(plainCodeChallenge, parameters.get("code_verifier"));
-            }
+        YHttpClient httpClient =
+                new YHttpClient() {
+                    @Override
+                    public void requestPost(
+                            String endpointUrl,
+                            HttpParameters parameters,
+                            HttpHeaders requestHeaders) {
+                        assertEquals(
+                                OAuth2GrantType.AUTHORIZATION_CODE, parameters.get("grant_type"));
+                        assertEquals(code, parameters.get("code"));
+                        assertEquals(redirectUri, parameters.get("redirect_uri"));
+                        assertEquals(plainCodeChallenge, parameters.get("code_verifier"));
+                    }
 
-            @Override
-            public HttpHeaders getResponseHeaders() {
-                return new HttpHeaders();
-            }
+                    @Override
+                    public HttpHeaders getResponseHeaders() {
+                        return new HttpHeaders();
+                    }
 
-            @Override
-            public String getResponseBody() {
-                return "{\"access_token\":\"" + accessTokenString + "\", \"expires_in\":" + expiresIn
-                        + ", \"refresh_token\":\"" + refreshToken + "\", \"id_token\":\"" + idTokenString + "\"}";
-            }
+                    @Override
+                    public String getResponseBody() {
+                        return "{\"access_token\":\""
+                                + accessTokenString
+                                + "\", \"expires_in\":"
+                                + expiresIn
+                                + ", \"refresh_token\":\""
+                                + refreshToken
+                                + "\", \"id_token\":\""
+                                + idTokenString
+                                + "\"}";
+                    }
 
-            @Override
-            public int getStatusCode() {
-                return 200;
-            }
-        };
+                    @Override
+                    public int getStatusCode() {
+                        return 200;
+                    }
+                };
 
-        TokenClient tokenClient = new TokenClient(TOKEN_ENDPOINT_URL, code, redirectUri,
-                clientId, clientSecret, plainCodeChallenge) {
+        TokenClient tokenClient =
+                new TokenClient(
+                        TOKEN_ENDPOINT_URL,
+                        code,
+                        redirectUri,
+                        clientId,
+                        clientSecret,
+                        plainCodeChallenge) {
 
-            @Override
-            public BearerToken getAccessToken() {
-                return new BearerToken(accessTokenString, expiresIn, refreshToken);
-            }
+                    @Override
+                    public BearerToken getAccessToken() {
+                        return new BearerToken(accessTokenString, expiresIn, refreshToken);
+                    }
 
-            @Override
-            public String getIdToken() {
-                return idTokenString;
-            }
+                    @Override
+                    public String getIdToken() {
+                        return idTokenString;
+                    }
 
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return httpClient;
-            }
-        };
+                    @Override
+                    protected YHttpClient getYHttpClient() {
+                        return httpClient;
+                    }
+                };
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected TokenClient getTokenClient(String code, String redirectUri, String clientId, String clientSecret,
-                                                 String plainCodeChallenge) {
-                return tokenClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected TokenClient getTokenClient(
+                            String code,
+                            String redirectUri,
+                            String clientId,
+                            String clientSecret,
+                            String plainCodeChallenge) {
+                        return tokenClient;
+                    }
+                };
 
         explicit.requestToken(code, redirectUri, clientId, clientSecret, plainCodeChallenge);
 
@@ -374,31 +428,49 @@ public class YConnectClientTest {
     }
 
     @Test
-    public void testRequestTokenThrowsTokenException() throws Exception {
+    public void testRequestTokenThrowsTokenException() {
         String error = "sample_error";
         String errorDescription = "sample_error_description";
         Integer errorCode = 1000;
 
-        TokenClient tokenClient = new TokenClient(TOKEN_ENDPOINT_URL, "sample_code", redirectUri,
-                clientId, clientSecret, plainCodeChallenge) {
+        TokenClient tokenClient =
+                new TokenClient(
+                        TOKEN_ENDPOINT_URL,
+                        "sample_code",
+                        redirectUri,
+                        clientId,
+                        clientSecret,
+                        plainCodeChallenge) {
 
-            @Override
-            public void fetch() throws TokenException {
-                throw new TokenException(error, errorDescription, errorCode);
-            }
-        };
+                    @Override
+                    public void fetch() throws TokenException {
+                        throw new TokenException(error, errorDescription, errorCode);
+                    }
+                };
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected TokenClient getTokenClient(String code, String redirectUri, String clientId, String clientSecret,
-                                                 String plainCodeChallenge) {
-                return tokenClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected TokenClient getTokenClient(
+                            String code,
+                            String redirectUri,
+                            String clientId,
+                            String clientSecret,
+                            String plainCodeChallenge) {
+                        return tokenClient;
+                    }
+                };
 
-        TokenException ex = assertThrows(TokenException.class, () -> {
-            explicit.requestToken("sample_code", redirectUri, clientId, clientSecret, plainCodeChallenge);
-        });
+        TokenException ex =
+                assertThrows(
+                        TokenException.class,
+                        () ->
+                                explicit.requestToken(
+                                        "sample_code",
+                                        redirectUri,
+                                        clientId,
+                                        clientSecret,
+                                        plainCodeChallenge));
         assertEquals(error, ex.getError());
         assertEquals(errorDescription, ex.getErrorDescription());
         assertEquals(errorCode, ex.getErrorCode());
@@ -431,50 +503,58 @@ public class YConnectClientTest {
         String idTokenString = new IdTokenGenerator(getSampleIdTokenObject()).getIdTokenString();
 
         YConnectClient explicit = new YConnectClient();
-        explicit.decodeIdToken(String.join(".", idTokenString.split("\\.")[0],
-                idTokenString.split("\\.")[1]));
+        explicit.decodeIdToken(
+                String.join(".", idTokenString.split("\\.")[0], idTokenString.split("\\.")[1]));
     }
 
     @Test
     public void testVerifyIdTokenReturnsTrue() throws Exception {
-        IdTokenGenerator generator =  new IdTokenGenerator(getSampleIdTokenObject());
+        IdTokenGenerator generator = new IdTokenGenerator(getSampleIdTokenObject());
         String idTokenString = generator.getIdTokenString();
 
-        PublicKeysClient publicKeysClient = new PublicKeysClient() {
-            @Override
-            public void fetchResource(String endpoint) {
+        PublicKeysClient publicKeysClient =
+                new PublicKeysClient() {
+                    @Override
+                    public void fetchResource(String endpoint) {}
 
-            }
+                    @Override
+                    public PublicKeysObject getPublicKeysObject() {
+                        return new PublicKeysObject();
+                    }
+                };
 
-            @Override
-            public PublicKeysObject getPublicKeysObject() {
-                return new PublicKeysObject();
-            }
-        };
+        IdTokenVerification idTokenVerification =
+                new IdTokenVerification() {
+                    @Override
+                    public boolean check(
+                            String iss,
+                            String nonce,
+                            String clientId,
+                            IdTokenObject idTokenObject,
+                            PublicKeysObject publicKeysObject,
+                            String idTokenString,
+                            String accessToken) {
+                        return true;
+                    }
+                };
 
-        IdTokenVerification idTokenVerification = new IdTokenVerification() {
-            @Override
-            public boolean check(String iss, String nonce, String clientId, IdTokenObject idTokenObject,
-                                 PublicKeysObject publicKeysObject, String idTokenString, String accessToken) {
-                return true;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected PublicKeysClient getPublicKeysClient() {
+                        return publicKeysClient;
+                    }
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected PublicKeysClient getPublicKeysClient() {
-                return publicKeysClient;
-            }
-
-            @Override
-            protected IdTokenVerification getIdTokenVerification() {
-                return idTokenVerification;
-            }
-        };
+                    @Override
+                    protected IdTokenVerification getIdTokenVerification() {
+                        return idTokenVerification;
+                    }
+                };
 
         Field accessTokenField = YConnectClient.class.getDeclaredField("accessToken");
         accessTokenField.setAccessible(true);
-        accessTokenField.set(explicit, new BearerToken("accessTokenSample", 1635638400, "refreshTokenSample"));
+        accessTokenField.set(
+                explicit, new BearerToken("accessTokenSample", 1635638400, "refreshTokenSample"));
 
         explicit.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
         assertTrue(explicit.verifyIdToken(nonce, clientId, idTokenString));
@@ -482,44 +562,52 @@ public class YConnectClientTest {
 
     @Test
     public void testVerifyIdTokenReturnsFalse() throws Exception {
-        IdTokenGenerator generator =  new IdTokenGenerator(getSampleIdTokenObject());
+        IdTokenGenerator generator = new IdTokenGenerator(getSampleIdTokenObject());
         String idTokenString = generator.getIdTokenString();
 
-        PublicKeysClient publicKeysClient = new PublicKeysClient() {
-            @Override
-            public void fetchResource(String endpoint) {
+        PublicKeysClient publicKeysClient =
+                new PublicKeysClient() {
+                    @Override
+                    public void fetchResource(String endpoint) {}
 
-            }
+                    @Override
+                    public PublicKeysObject getPublicKeysObject() {
+                        return new PublicKeysObject();
+                    }
+                };
 
-            @Override
-            public PublicKeysObject getPublicKeysObject() {
-                return new PublicKeysObject();
-            }
-        };
+        IdTokenVerification idTokenVerification =
+                new IdTokenVerification() {
+                    @Override
+                    public boolean check(
+                            String iss,
+                            String nonce,
+                            String clientId,
+                            IdTokenObject idTokenObject,
+                            PublicKeysObject publicKeysObject,
+                            String idTokenString,
+                            String accessToken) {
+                        return false;
+                    }
+                };
 
-        IdTokenVerification idTokenVerification = new IdTokenVerification() {
-            @Override
-            public boolean check(String iss, String nonce, String clientId, IdTokenObject idTokenObject,
-                                 PublicKeysObject publicKeysObject, String idTokenString, String accessToken) {
-                return false;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected PublicKeysClient getPublicKeysClient() {
+                        return publicKeysClient;
+                    }
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected PublicKeysClient getPublicKeysClient() {
-                return publicKeysClient;
-            }
-
-            @Override
-            protected IdTokenVerification getIdTokenVerification() {
-                return idTokenVerification;
-            }
-        };
+                    @Override
+                    protected IdTokenVerification getIdTokenVerification() {
+                        return idTokenVerification;
+                    }
+                };
 
         Field accessTokenField = YConnectClient.class.getDeclaredField("accessToken");
         accessTokenField.setAccessible(true);
-        accessTokenField.set(explicit, new BearerToken("accessTokenSample", 1635638400, "refreshTokenSample"));
+        accessTokenField.set(
+                explicit, new BearerToken("accessTokenSample", 1635638400, "refreshTokenSample"));
 
         explicit.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
         assertFalse(explicit.verifyIdToken(nonce, clientId, idTokenString));
@@ -527,41 +615,49 @@ public class YConnectClientTest {
 
     @Test(expected = DataFormatException.class)
     public void testVerifyIdTokenThrowsDataFormatException() throws Exception {
-        IdTokenGenerator generator =  new IdTokenGenerator(getSampleIdTokenObject());
+        IdTokenGenerator generator = new IdTokenGenerator(getSampleIdTokenObject());
         String idTokenString = generator.getIdTokenString();
-        idTokenString = String.join(".", idTokenString.split("\\.")[0], idTokenString.split("\\.")[1]);
+        idTokenString =
+                String.join(".", idTokenString.split("\\.")[0], idTokenString.split("\\.")[1]);
 
-        PublicKeysClient publicKeysClient = new PublicKeysClient() {
-            @Override
-            public void fetchResource(String endpoint) {
+        PublicKeysClient publicKeysClient =
+                new PublicKeysClient() {
+                    @Override
+                    public void fetchResource(String endpoint) {}
 
-            }
+                    @Override
+                    public PublicKeysObject getPublicKeysObject() {
+                        return new PublicKeysObject();
+                    }
+                };
 
-            @Override
-            public PublicKeysObject getPublicKeysObject() {
-                return new PublicKeysObject();
-            }
-        };
+        IdTokenVerification idTokenVerification =
+                new IdTokenVerification() {
+                    @Override
+                    public boolean check(
+                            String iss,
+                            String nonce,
+                            String clientId,
+                            IdTokenObject idTokenObject,
+                            PublicKeysObject publicKeysObject,
+                            String idTokenString,
+                            String accessToken) {
+                        return false;
+                    }
+                };
 
-        IdTokenVerification idTokenVerification = new IdTokenVerification() {
-            @Override
-            public boolean check(String iss, String nonce, String clientId, IdTokenObject idTokenObject,
-                                 PublicKeysObject publicKeysObject, String idTokenString, String accessToken) {
-                return false;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected PublicKeysClient getPublicKeysClient() {
+                        return publicKeysClient;
+                    }
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected PublicKeysClient getPublicKeysClient() {
-                return publicKeysClient;
-            }
-
-            @Override
-            protected IdTokenVerification getIdTokenVerification() {
-                return idTokenVerification;
-            }
-        };
+                    @Override
+                    protected IdTokenVerification getIdTokenVerification() {
+                        return idTokenVerification;
+                    }
+                };
 
         explicit.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
         explicit.verifyIdToken(nonce, clientId, idTokenString);
@@ -573,24 +669,27 @@ public class YConnectClientTest {
         String errorDescription = "error_description_sample";
         String idTokenString = new IdTokenGenerator(getSampleIdTokenObject()).getIdTokenString();
 
-        PublicKeysClient publicKeysClient = new PublicKeysClient() {
-            @Override
-            public void fetchResource(String endpoint) throws ApiClientException {
-                throw new ApiClientException(error, errorDescription);
-            }
-        };
+        PublicKeysClient publicKeysClient =
+                new PublicKeysClient() {
+                    @Override
+                    public void fetchResource(String endpoint) throws ApiClientException {
+                        throw new ApiClientException(error, errorDescription);
+                    }
+                };
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected PublicKeysClient getPublicKeysClient() {
-                return publicKeysClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected PublicKeysClient getPublicKeysClient() {
+                        return publicKeysClient;
+                    }
+                };
 
         explicit.init(clientId, redirectUri, state, responseType, display, prompt, scope, nonce);
-        ApiClientException ex = assertThrows(ApiClientException.class, () -> {
-            explicit.verifyIdToken(nonce, clientId, idTokenString);
-        });
+        ApiClientException ex =
+                assertThrows(
+                        ApiClientException.class,
+                        () -> explicit.verifyIdToken(nonce, clientId, idTokenString));
 
         assertEquals(error, ex.getError());
         assertEquals(errorDescription, ex.getErrorDescription());
@@ -602,49 +701,59 @@ public class YConnectClientTest {
         long expiresIn = 1635638400;
         String refreshToken = "sample_refresh_token";
 
-        YHttpClient httpClient = new YHttpClient() {
-            @Override
-            public void requestPost(String endpointUrl, HttpParameters parameters, HttpHeaders requestHeaders) {
-                assertEquals(OAuth2GrantType.REFRESH_TOKEN, parameters.get("grant_type"));
-                assertEquals(refreshToken, parameters.get("refresh_token"));
-            }
+        YHttpClient httpClient =
+                new YHttpClient() {
+                    @Override
+                    public void requestPost(
+                            String endpointUrl,
+                            HttpParameters parameters,
+                            HttpHeaders requestHeaders) {
+                        assertEquals(OAuth2GrantType.REFRESH_TOKEN, parameters.get("grant_type"));
+                        assertEquals(refreshToken, parameters.get("refresh_token"));
+                    }
 
-            @Override
-            public HttpHeaders getResponseHeaders() {
-                return new HttpHeaders();
-            }
+                    @Override
+                    public HttpHeaders getResponseHeaders() {
+                        return new HttpHeaders();
+                    }
 
-            @Override
-            public String getResponseBody() {
-                return "{\"access_token\":\"" + accessTokenString + "\", \"expires_in\":" + expiresIn + "}";
-            }
+                    @Override
+                    public String getResponseBody() {
+                        return "{\"access_token\":\""
+                                + accessTokenString
+                                + "\", \"expires_in\":"
+                                + expiresIn
+                                + "}";
+                    }
 
-            @Override
-            public int getStatusCode() {
-                return 200;
-            }
-        };
+                    @Override
+                    public int getStatusCode() {
+                        return 200;
+                    }
+                };
 
-        RefreshTokenClient refreshTokenClient = new RefreshTokenClient(TOKEN_ENDPOINT_URL, refreshToken,
-                clientId, clientSecret) {
+        RefreshTokenClient refreshTokenClient =
+                new RefreshTokenClient(TOKEN_ENDPOINT_URL, refreshToken, clientId, clientSecret) {
 
-            @Override
-            public BearerToken getAccessToken() {
-                return new BearerToken(accessTokenString, expiresIn);
-            }
+                    @Override
+                    public BearerToken getAccessToken() {
+                        return new BearerToken(accessTokenString, expiresIn);
+                    }
 
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return httpClient;
-            }
-        };
+                    @Override
+                    protected YHttpClient getYHttpClient() {
+                        return httpClient;
+                    }
+                };
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected RefreshTokenClient getRefreshTokenClient(String refreshToken, String clientId, String clientSecret) {
-                return refreshTokenClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected RefreshTokenClient getRefreshTokenClient(
+                            String refreshToken, String clientId, String clientSecret) {
+                        return refreshTokenClient;
+                    }
+                };
 
         explicit.refreshToken(refreshToken, clientId, clientSecret);
 
@@ -653,30 +762,34 @@ public class YConnectClientTest {
     }
 
     @Test
-    public void testRefreshTokenThrowsTokenException() throws Exception {
+    public void testRefreshTokenThrowsTokenException() {
         String error = "sample_error";
         String errorDescription = "sample_error_description";
         Integer errorCode = 1000;
 
-        RefreshTokenClient refreshTokenClient = new RefreshTokenClient(TOKEN_ENDPOINT_URL, "refreshTokenSample",
-                clientId, clientSecret) {
+        RefreshTokenClient refreshTokenClient =
+                new RefreshTokenClient(
+                        TOKEN_ENDPOINT_URL, "refreshTokenSample", clientId, clientSecret) {
 
-            @Override
-            public void fetch() throws TokenException {
-                throw new TokenException(error, errorDescription, errorCode);
-            }
-        };
+                    @Override
+                    public void fetch() throws TokenException {
+                        throw new TokenException(error, errorDescription, errorCode);
+                    }
+                };
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected RefreshTokenClient getRefreshTokenClient(String refreshToken, String clientId, String clientSecret) {
-                return refreshTokenClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected RefreshTokenClient getRefreshTokenClient(
+                            String refreshToken, String clientId, String clientSecret) {
+                        return refreshTokenClient;
+                    }
+                };
 
-        TokenException ex = assertThrows(TokenException.class, () -> {
-            explicit.refreshToken("refreshTokenSample", clientId, clientSecret);
-        });
+        TokenException ex =
+                assertThrows(
+                        TokenException.class,
+                        () -> explicit.refreshToken("refreshTokenSample", clientId, clientSecret));
 
         assertEquals(error, ex.getError());
         assertEquals(errorDescription, ex.getErrorDescription());
@@ -689,25 +802,25 @@ public class YConnectClientTest {
 
         UserInfoObject userInfoObject = new UserInfoObject();
 
-        UserInfoClient userInfoClient = new UserInfoClient(accessTokenString) {
+        UserInfoClient userInfoClient =
+                new UserInfoClient(accessTokenString) {
 
-            @Override
-            public void fetchResouce(String endpoint, String method) {
+                    @Override
+                    public void fetchResource(String endpoint, String method) {}
 
-            }
+                    @Override
+                    public UserInfoObject getUserInfoObject() {
+                        return userInfoObject;
+                    }
+                };
 
-            @Override
-            public UserInfoObject getUserInfoObject() {
-                return userInfoObject;
-            }
-        };
-
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected UserInfoClient getUserInfoClient(String accessTokenString) {
-                return userInfoClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected UserInfoClient getUserInfoClient(String accessTokenString) {
+                        return userInfoClient;
+                    }
+                };
 
         explicit.requestUserInfo(accessTokenString);
 
@@ -716,20 +829,23 @@ public class YConnectClientTest {
 
     @Test(expected = ApiClientException.class)
     public void testRequestUserInfoThrowsApiClientException() throws Exception {
-        UserInfoClient userInfoClient = new UserInfoClient("accessTokenSample") {
+        UserInfoClient userInfoClient =
+                new UserInfoClient("accessTokenSample") {
 
-            @Override
-            public void fetchResouce(String endpoint, String method) throws ApiClientException {
-                throw new ApiClientException();
-            }
-        };
+                    @Override
+                    public void fetchResource(String endpoint, String method)
+                            throws ApiClientException {
+                        throw new ApiClientException();
+                    }
+                };
 
-        YConnectClient explicit = new YConnectClient() {
-            @Override
-            protected UserInfoClient getUserInfoClient(String accessTokenString) {
-                return userInfoClient;
-            }
-        };
+        YConnectClient explicit =
+                new YConnectClient() {
+                    @Override
+                    protected UserInfoClient getUserInfoClient(String accessTokenString) {
+                        return userInfoClient;
+                    }
+                };
 
         explicit.requestUserInfo("accessTokenSample");
     }

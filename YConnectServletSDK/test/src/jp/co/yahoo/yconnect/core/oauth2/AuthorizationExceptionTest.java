@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,10 +24,10 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class AuthorizationExceptionTest {
 
@@ -42,97 +42,113 @@ public class AuthorizationExceptionTest {
 
     @Test
     public void testIsInvalidRequestTrue() {
-        AuthorizationException exception = new AuthorizationException(INVALID_REQUEST, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(INVALID_REQUEST, "message", "1000");
         assertTrue(exception.isInvalidRequest());
     }
 
     @Test
     public void testIsInvalidRequestFalse() {
-        AuthorizationException exception = new AuthorizationException(UNAUTHORIZED_CLIENT, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(UNAUTHORIZED_CLIENT, "message", "1000");
         assertFalse(exception.isInvalidRequest());
     }
 
     @Test
     public void testIsUnauthorizedClientTrue() {
-        AuthorizationException exception = new AuthorizationException(UNAUTHORIZED_CLIENT, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(UNAUTHORIZED_CLIENT, "message", "1000");
         assertTrue(exception.isUnauthorizedClient());
     }
 
     @Test
     public void testIsUnauthorizedClientFalse() {
-        AuthorizationException exception = new AuthorizationException(ACCESS_DENIED, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(ACCESS_DENIED, "message", "1000");
         assertFalse(exception.isUnauthorizedClient());
     }
 
     @Test
     public void testIsAccessDeniedTrue() {
-        AuthorizationException exception = new AuthorizationException(ACCESS_DENIED, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(ACCESS_DENIED, "message", "1000");
         assertTrue(exception.isAccessDenied());
     }
 
     @Test
     public void testIsAccessDeniedFalse() {
-        AuthorizationException exception = new AuthorizationException(UNSUPPORTED_RESPONSE_TYPE, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(UNSUPPORTED_RESPONSE_TYPE, "message", "1000");
         assertFalse(exception.isAccessDenied());
     }
 
     @Test
     public void testIsUnsupportedResponseTypeTrue() {
-        AuthorizationException exception = new AuthorizationException(UNSUPPORTED_RESPONSE_TYPE, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(UNSUPPORTED_RESPONSE_TYPE, "message", "1000");
         assertTrue(exception.isUnsupportedResponseType());
     }
 
     @Test
     public void testIsUnsupportedResponseTypeFalse() {
-        AuthorizationException exception = new AuthorizationException(INVALID_SCOPE, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(INVALID_SCOPE, "message", "1000");
         assertFalse(exception.isUnsupportedResponseType());
     }
 
     @Test
     public void testIsInvalidScopeTrue() {
-        AuthorizationException exception = new AuthorizationException(INVALID_SCOPE, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(INVALID_SCOPE, "message", "1000");
         assertTrue(exception.isInvalidScope());
     }
 
     @Test
     public void testIsInvalidScopeFalse() {
-        AuthorizationException exception = new AuthorizationException(SERVER_ERROR, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(SERVER_ERROR, "message", "1000");
         assertFalse(exception.isInvalidScope());
     }
 
     @Test
     public void testIsServerErrorTrue() {
-        AuthorizationException exception = new AuthorizationException(SERVER_ERROR, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(SERVER_ERROR, "message", "1000");
         assertTrue(exception.isServerError());
     }
 
     @Test
     public void testIsServerErrorFalse() {
-        AuthorizationException exception = new AuthorizationException(TEMPORARILY_AVAILABLE, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(TEMPORARILY_AVAILABLE, "message", "1000");
         assertFalse(exception.isServerError());
     }
 
     @Test
     public void testIsTemporarilyUnavailableTrue() {
-        AuthorizationException exception = new AuthorizationException(TEMPORARILY_AVAILABLE, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(TEMPORARILY_AVAILABLE, "message", "1000");
         assertTrue(exception.isTemporarilyUnavailable());
     }
 
     @Test
     public void testIsTemporarilyUnavailableFalse() {
-        AuthorizationException exception = new AuthorizationException(INVALID_GRANT, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(INVALID_GRANT, "message", "1000");
         assertFalse(exception.isTemporarilyUnavailable());
     }
 
     @Test
     public void testIsInvalidGrantTrue() {
-        AuthorizationException exception = new AuthorizationException(INVALID_GRANT, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(INVALID_GRANT, "message", "1000");
         assertTrue(exception.isInvalidGrant());
     }
 
     @Test
     public void testIsInvalidGrantFalse() {
-        AuthorizationException exception = new AuthorizationException(INVALID_REQUEST, "message", "1000");
+        AuthorizationException exception =
+                new AuthorizationException(INVALID_REQUEST, "message", "1000");
         assertFalse(exception.isInvalidGrant());
     }
 }

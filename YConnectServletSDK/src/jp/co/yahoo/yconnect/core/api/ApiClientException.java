@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,120 +28,113 @@ package jp.co.yahoo.yconnect.core.api;
  * API Client Exception.
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class ApiClientException extends Exception {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * Error code.
-   */
-  private String error = "";
+    /** Error code. */
+    private String error = "";
 
-  /**
-   * Description of error.
-   */
-  private String errorDescription = "";
+    /** Description of error. */
+    private String errorDescription = "";
 
-  /**
-   * ApiClientException Constructor.
-   */
-  public ApiClientException() {
-    super();
-  }
-
-  /**
-   * ApiClientException Constructor.
-   * 
-   * @param error Error code.
-   * @param message Description of error.
-   */
-  public ApiClientException(String error, String message) {
-    super(message);
-    this.error = error;
-    this.errorDescription = message;
-  }
-
-  /**
-   * ApiClientException Constructor.
-   * 
-   * @param error Error code.
-   * @param message Description of error.
-   * @param cause
-   */
-  public ApiClientException(String error, String message, Throwable cause) {
-    super(message, cause);
-    this.error = error;
-    this.errorDescription = message;
-  }
-
-  /**
-   * ApiClientException Constructor.
-   * 
-   * @param error Error code.
-   * @param cause
-   */
-  public ApiClientException(String error, Throwable cause) {
-    super(cause);
-    this.error = error;
-  }
-
-  /**
-   * Get error code.
-   * 
-   * @return error code of type String.
-   */
-  public String getError() {
-    return this.error;
-  }
-
-  /**
-   * Get description of error.
-   * 
-   * @return description of type String.
-   */
-  public String getErrorDescription() {
-    return this.errorDescription;
-  }
-
-  /**
-   * Determine if this error is "invalid_request".
-   * 
-   * @return true if this error is "invalid_request"; false otherwise.
-   */
-  public boolean isInvalidRequest() {
-    if ("invalid_request".equals(error)) {
-      return true;
+    /** ApiClientException Constructor. */
+    public ApiClientException() {
+        super();
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "invalid_token".
-   * 
-   * @return true if this error is "invalid_token"; false otherwise.
-   */
-  public boolean isInvalidToken() {
-    if ("invalid_token".equals(error)) {
-      return true;
+    /**
+     * ApiClientException Constructor.
+     *
+     * @param error Error code.
+     * @param message Description of error.
+     */
+    public ApiClientException(String error, String message) {
+        super(message);
+        this.error = error;
+        this.errorDescription = message;
     }
-    return false;
-  }
 
-  /**
-   * Determine if this error is "insufficient_scope".
-   * 
-   * @return true if this error is "insufficient_scope"; false otherwise.
-   */
-  public boolean isInsufficientScope() {
-    if ("insufficient_scope".equals(error)) {
-      return true;
+    /**
+     * ApiClientException Constructor.
+     *
+     * @param error Error code.
+     * @param message Description of error.
+     * @param cause The cause.
+     */
+    public ApiClientException(String error, String message, Throwable cause) {
+        super(message, cause);
+        this.error = error;
+        this.errorDescription = message;
     }
-    return false;
-  }
 
-  public String toString() {
-    return "error: " + this.error + " error_description: " + errorDescription;
-  }
+    /**
+     * ApiClientException Constructor.
+     *
+     * @param error Error code.
+     * @param cause The cause.
+     */
+    public ApiClientException(String error, Throwable cause) {
+        super(cause);
+        this.error = error;
+    }
+
+    /**
+     * Get error code.
+     *
+     * @return error code of type String.
+     */
+    public String getError() {
+        return this.error;
+    }
+
+    /**
+     * Get description of error.
+     *
+     * @return description of type String.
+     */
+    public String getErrorDescription() {
+        return this.errorDescription;
+    }
+
+    /**
+     * Determine if this error is "invalid_request".
+     *
+     * @return true if this error is "invalid_request"; false otherwise.
+     */
+    public boolean isInvalidRequest() {
+        if ("invalid_request".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if this error is "invalid_token".
+     *
+     * @return true if this error is "invalid_token"; false otherwise.
+     */
+    public boolean isInvalidToken() {
+        if ("invalid_token".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determine if this error is "insufficient_scope".
+     *
+     * @return true if this error is "insufficient_scope"; false otherwise.
+     */
+    public boolean isInsufficientScope() {
+        if ("insufficient_scope".equals(error)) {
+            return true;
+        }
+        return false;
+    }
+
+    public String toString() {
+        return "error: " + this.error + " error_description: " + errorDescription;
+    }
 }

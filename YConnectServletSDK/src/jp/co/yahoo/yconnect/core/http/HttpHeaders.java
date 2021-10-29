@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -31,34 +31,30 @@ import java.util.Iterator;
  * HTTP Headers Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class HttpHeaders extends HashMap<String, String> {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * HttpHeaders Constructor.
-   */
-  public HttpHeaders() {
-    super();
-  }
-
-  /**
-   * Get all headers.
-   * 
-   * @return all headers of type string.
-   */
-  public String toHeaderString() {
-    String headers = "";
-    String indent = "";
-    Iterator<String> iterator = this.keySet().iterator();
-    while (iterator.hasNext()) {
-      String key = iterator.next();
-      headers += indent + key + ": " + this.get(key);
-      indent = "\n";
+    /** HttpHeaders Constructor. */
+    public HttpHeaders() {
+        super();
     }
-    return headers;
-  }
 
+    /**
+     * Get all headers.
+     *
+     * @return all headers of type string.
+     */
+    public String toHeaderString() {
+        String headers = "";
+        String indent = "";
+        Iterator<String> iterator = this.keySet().iterator();
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            headers += indent + key + ": " + this.get(key);
+            indent = "\n";
+        }
+        return headers;
+    }
 }

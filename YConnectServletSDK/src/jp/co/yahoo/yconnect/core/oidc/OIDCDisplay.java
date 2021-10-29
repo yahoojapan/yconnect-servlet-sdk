@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,33 +28,21 @@ package jp.co.yahoo.yconnect.core.oidc;
  * OpenID Connect Display
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class OIDCDisplay {
 
-  /**
-   * Display: Auto-detect
-   */
-  public static final String DEFAULT = "page";
+    /** Display: Auto-detect */
+    public static final String DEFAULT = "page";
 
-  /**
-   * Display: page
-   */
-  public static final String PC = "page";
+    /** Display: page */
+    public static final String PC = "page";
 
-  /**
-   * Display: touch
-   */
-  public static final String SMART_PHONE = "touch";
+    /** Display: touch */
+    public static final String SMART_PHONE = "touch";
 
-  /**
-   * Display: popup
-   */
-  public static final String POPUP = "popup";
+    /** Display: popup */
+    public static final String POPUP = "popup";
 
-  /**
-   * Display: inapp
-   */
-  public static final String NATIVE_APP = "inapp";
-
+    /** Display: inapp */
+    public static final String NATIVE_APP = "inapp";
 }

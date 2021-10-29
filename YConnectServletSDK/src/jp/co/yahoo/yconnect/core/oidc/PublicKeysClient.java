@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,16 +24,20 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
+import java.io.StringReader;
+import java.util.Set;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import jp.co.yahoo.yconnect.core.api.ApiClientException;
 import jp.co.yahoo.yconnect.core.http.HttpHeaders;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.StringReader;
-import java.util.Set;
-
+/**
+ * PublicKeys Client Class
+ *
+ * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
+ */
 public class PublicKeysClient {
 
     private PublicKeysObject publicKeysObject;
@@ -48,8 +52,13 @@ public class PublicKeysClient {
         String responseBody = client.getResponseBody();
 
         if (responseCode != 200) {
-            throw new ApiClientException("Failed Request.(status code: " + responseCode
-                    + " status message: " + responseMessage + ")", responseHeaders.toString());
+            throw new ApiClientException(
+                    "Failed Request.(status code: "
+                            + responseCode
+                            + " status message: "
+                            + responseMessage
+                            + ")",
+                    responseHeaders.toString());
         }
 
         publicKeysParser(responseBody);
@@ -63,7 +72,7 @@ public class PublicKeysClient {
         publicKeysObject = new PublicKeysObject();
 
         Set<String> kids = rootObject.keySet();
-        for(String kid : kids) {
+        for (String kid : kids) {
             publicKeysObject.register(kid, rootObject.getString(kid));
         }
 

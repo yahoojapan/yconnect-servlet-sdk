@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -26,7 +26,6 @@ package jp.co.yahoo.yconnect.core.oauth2;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 
@@ -34,64 +33,59 @@ import jp.co.yahoo.yconnect.core.util.YConnectLogger;
  * Authorization Request Client Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class AuthorizationRequestClient {
 
-  private final static String TAG = AuthorizationRequestClient.class.getSimpleName();
+    private static final String TAG = AuthorizationRequestClient.class.getSimpleName();
 
-  private URI requestUri;
+    private final HttpParameters parameters;
 
-  private HttpParameters parameters;
+    private final String endpointUri;
 
-  private String endpointUri;
+    private final String clientId;
 
-  private String clientId;
+    private String redirectUri;
 
-  private String redirectUri;
+    private String responseType;
 
-  private String responseType;
+    private String state;
 
-  private String state;
-
-  public AuthorizationRequestClient(String endpointUri, String clientId) {
-    this.endpointUri = endpointUri;
-    this.clientId = clientId;
-    this.parameters = new HttpParameters();
-  }
-
-  public URI generateAuthorizationUri() {
-    parameters.put("client_id", clientId);
-    parameters.put("response_type", responseType);
-    parameters.put("state", state);
-    parameters.put("redirect_uri", redirectUri);
-    YConnectLogger.info(TAG, parameters.toString());
-    String uriString = endpointUri;
-    uriString += "?" + parameters.toQueryString();
-    requestUri = null;
-    try {
-      requestUri = new URI(uriString);
-      requestUri.normalize();
-    } catch (URISyntaxException e) {
-      e.printStackTrace();
+    public AuthorizationRequestClient(String endpointUri, String clientId) {
+        this.endpointUri = endpointUri;
+        this.clientId = clientId;
+        this.parameters = new HttpParameters();
     }
-    return requestUri;
-  }
 
-  public void setRedirectUri(String redirectUri) {
-    this.redirectUri = redirectUri;
-  }
+    public URI generateAuthorizationUri() {
+        parameters.put("client_id", clientId);
+        parameters.put("response_type", responseType);
+        parameters.put("state", state);
+        parameters.put("redirect_uri", redirectUri);
+        YConnectLogger.info(TAG, parameters.toString());
+        String uriString = endpointUri;
+        uriString += "?" + parameters.toQueryString();
+        URI requestUri = null;
+        try {
+            requestUri = new URI(uriString);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return requestUri;
+    }
 
-  public void setResponseType(String responseType) {
-    this.responseType = responseType;
-  }
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+    }
 
-  public void setState(String state) {
-    this.state = state;
-  }
+    public void setResponseType(String responseType) {
+        this.responseType = responseType;
+    }
 
-  public void setParameter(String name, String value) {
-    parameters.put(name, value);
-  }
+    public void setState(String state) {
+        this.state = state;
+    }
 
+    public void setParameter(String name, String value) {
+        parameters.put(name, value);
+    }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,21 +24,20 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
+import static org.junit.Assert.*;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.util.Base64;
+import javax.json.stream.JsonParsingException;
 import jp.co.yahoo.yconnect.core.api.ApiClientException;
 import jp.co.yahoo.yconnect.core.http.HttpHeaders;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import javax.json.stream.JsonParsingException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.util.Base64;
-
-import static org.junit.Assert.*;
 
 public class PublicKeysClientTest {
 
@@ -56,39 +55,42 @@ public class PublicKeysClientTest {
 
     @Test
     public void testFetchResource() throws ApiClientException {
-        YHttpClient httpClient = new YHttpClient() {
-            @Override
-            public void requestGet(String urlString, HttpParameters parameters, HttpHeaders requestHeaders) {
+        YHttpClient httpClient =
+                new YHttpClient() {
+                    @Override
+                    public void requestGet(
+                            String urlString,
+                            HttpParameters parameters,
+                            HttpHeaders requestHeaders) {}
 
-            }
+                    @Override
+                    public int getStatusCode() {
+                        return 200;
+                    }
 
-            @Override
-            public int getStatusCode() {
-                return 200;
-            }
+                    @Override
+                    public String getStatusMessage() {
+                        return "200 - OK";
+                    }
 
-            @Override
-            public String getStatusMessage() {
-                return "200 - OK";
-            }
+                    @Override
+                    public HttpHeaders getResponseHeaders() {
+                        return new HttpHeaders();
+                    }
 
-            @Override
-            public HttpHeaders getResponseHeaders() {
-                return new HttpHeaders();
-            }
+                    @Override
+                    public String getResponseBody() {
+                        return "{\"kid\":\"sample_public_key\"}";
+                    }
+                };
 
-            @Override
-            public String getResponseBody() {
-                return "{\"kid\":\"sample_public_key\"}";
-            }
-        };
-
-        PublicKeysClient client = new PublicKeysClient() {
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return httpClient;
-            }
-        };
+        PublicKeysClient client =
+                new PublicKeysClient() {
+                    @Override
+                    protected YHttpClient getYHttpClient() {
+                        return httpClient;
+                    }
+                };
 
         client.fetchResource(endpoint);
 
@@ -102,51 +104,58 @@ public class PublicKeysClientTest {
         HttpHeaders headers = new HttpHeaders();
         String responseBody = "{}";
 
-        YHttpClient httpClient = new YHttpClient() {
-            @Override
-            public void requestGet(String urlString, HttpParameters parameters, HttpHeaders requestHeaders) {
+        YHttpClient httpClient =
+                new YHttpClient() {
+                    @Override
+                    public void requestGet(
+                            String urlString,
+                            HttpParameters parameters,
+                            HttpHeaders requestHeaders) {}
 
-            }
+                    @Override
+                    public int getStatusCode() {
+                        return responseCode;
+                    }
 
-            @Override
-            public int getStatusCode() {
-                return responseCode;
-            }
+                    @Override
+                    public String getStatusMessage() {
+                        return statusMessage;
+                    }
 
-            @Override
-            public String getStatusMessage() {
-                return statusMessage;
-            }
+                    @Override
+                    public HttpHeaders getResponseHeaders() {
+                        return headers;
+                    }
 
-            @Override
-            public HttpHeaders getResponseHeaders() {
-                return headers;
-            }
+                    @Override
+                    public String getResponseBody() {
+                        return responseBody;
+                    }
+                };
 
-            @Override
-            public String getResponseBody() {
-                return responseBody;
-            }
-        };
+        PublicKeysClient client =
+                new PublicKeysClient() {
+                    @Override
+                    protected YHttpClient getYHttpClient() {
+                        return httpClient;
+                    }
+                };
 
-        PublicKeysClient client = new PublicKeysClient() {
-            @Override
-            protected YHttpClient getYHttpClient() {
-                return httpClient;
-            }
-        };
+        ApiClientException ex =
+                assertThrows(ApiClientException.class, () -> client.fetchResource(endpoint));
 
-        ApiClientException ex = assertThrows(ApiClientException.class, () -> client.fetchResource(endpoint));
-
-        String expect = "Failed Request.(status code: " + responseCode + " status message: " + statusMessage + ")";
+        String expect =
+                "Failed Request.(status code: "
+                        + responseCode
+                        + " status message: "
+                        + statusMessage
+                        + ")";
         assertEquals(expect, ex.getError());
     }
 
     @Test
     public void testPublicKeysParser() throws Exception {
-        String json = "{"
-                + "\"kid1\":\"" + publicKey + "\","
-                + "\"kid2\":\"" + publicKey + "\"}";
+        String json = "{" + "\"kid1\":\"" + publicKey + "\"," + "\"kid2\":\"" + publicKey + "\"}";
 
         PublicKeysClient client = new PublicKeysClient();
 
@@ -163,9 +172,7 @@ public class PublicKeysClientTest {
 
     @Test(expected = JsonParsingException.class)
     public void testInvalidPublicKeysParser() throws Exception {
-        String json = "{"
-                + "\"kid1\":\"" + publicKey + "\","
-                + "\"kid2\":\"" + publicKey + "\"";
+        String json = "{" + "\"kid1\":\"" + publicKey + "\"," + "\"kid2\":\"" + publicKey + "\"";
 
         PublicKeysClient client = new PublicKeysClient();
 
@@ -177,6 +184,5 @@ public class PublicKeysClientTest {
         } catch (InvocationTargetException ex) {
             throw (Exception) ex.getCause();
         }
-
     }
 }

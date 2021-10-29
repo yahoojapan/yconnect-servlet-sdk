@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -31,68 +31,75 @@ import jp.co.yahoo.yconnect.core.util.YConnectLogger;
  * Client Callback URI Parser Class
  *
  * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class ClientCallbackUriParser {
 
-  private HttpParameters parameters = new HttpParameters();
+    private final HttpParameters parameters = new HttpParameters();
 
-  public ClientCallbackUriParser(String request) throws AuthorizationException {
-    parseUri(request);
-  }
-
-  public boolean hasAuthorizationCode() {
-    if (parameters.get("code") != null) {
-      return true;
+    public ClientCallbackUriParser(String request) throws AuthorizationException {
+        parseUri(request);
     }
-    return false;
-  }
 
-  public String getAuthorizationCode(String state) throws AuthorizationException {
-    YConnectLogger.debug(this, "Response state=" + parameters.get("state") + ", Input state="
-        + state);
-    if (state.equals(parameters.get("state"))) {
-      String authCodeString = parameters.get("code");
-      if (authCodeString != null) {
-        return authCodeString;
-      } else {
-        YConnectLogger.info(this, "No authorization code parameters.");
-        return null;
-      }
-    } else {
-      YConnectLogger.error(this, "Not Match State.");
-      throw new AuthorizationException("Not Match State.", "", "");
-    }
-  }
-
-  /**
-   * URIの中のcodeとstateをパースする
-   * 
-   * @param request
-   * @throws AuthorizationException
-   */
-  private void parseUri(String request) throws AuthorizationException {
-    YConnectLogger.debug(this, "Response Uri: " + request);
-    if (request != null) {
-      for (String query : request.split("&")) {
-        if(query.contains("=")) {
-          String name = query.split("=")[0];
-          String value = query.split("=")[1];
-          parameters.put(name, value);
-          YConnectLogger.debug(this, "put param: " + name + "=>" + value);
+    public boolean hasAuthorizationCode() {
+        if (parameters.get("code") != null) {
+            return true;
         }
-      }
+        return false;
     }
-    YConnectLogger.debug(this, "all params: " + parameters.toQueryString());
 
-    if (parameters.get("error") != null) {
-      String error = parameters.get("error");
-      String errorDescription = parameters.get("error_description");
-      String errorCode = parameters.get("error_code");
-      YConnectLogger.error(this, "error=" + error + ", error_description=" + errorDescription
-              + ", error_code=" + errorCode);
-      throw new AuthorizationException(error, errorDescription, errorCode);
+    public String getAuthorizationCode(String state) throws AuthorizationException {
+        YConnectLogger.debug(
+                this, "Response state=" + parameters.get("state") + ", Input state=" + state);
+        if (state.equals(parameters.get("state"))) {
+            String authCodeString = parameters.get("code");
+            if (authCodeString != null) {
+                return authCodeString;
+            } else {
+                YConnectLogger.info(this, "No authorization code parameters.");
+                return null;
+            }
+        } else {
+            YConnectLogger.error(this, "Not Match State.");
+            throw new AuthorizationException("Not Match State.", "", "");
+        }
     }
-    YConnectLogger.debug(this, "Finished Parsing: " + parameters.toString());
-  }
+
+    /**
+     * URIの中のcodeとstateをパースする
+     *
+     * @param request パース対象のURI
+     * @throws AuthorizationException レスポンスにエラーが含まれているときに発生
+     */
+    private void parseUri(String request) throws AuthorizationException {
+        YConnectLogger.debug(this, "Response Uri: " + request);
+        if (request != null) {
+            for (String query : request.split("&")) {
+                if (query.contains("=")) {
+                    String name = query.split("=")[0];
+                    String value = query.split("=")[1];
+                    parameters.put(name, value);
+                    YConnectLogger.debug(this, "put param: " + name + "=>" + value);
+                }
+            }
+        }
+        YConnectLogger.debug(this, "all params: " + parameters.toQueryString());
+
+        if (parameters.get("error") != null) {
+            String error = parameters.get("error");
+            String errorDescription = parameters.get("error_description");
+            String errorCode = parameters.get("error_code");
+
+            YConnectLogger.error(
+                    this,
+                    "error="
+                            + error
+                            + ", error_description="
+                            + errorDescription
+                            + ", error_code="
+                            + errorCode);
+
+            throw new AuthorizationException(error, errorDescription, errorCode);
+        }
+        YConnectLogger.debug(this, "Finished Parsing: " + parameters);
+    }
 }

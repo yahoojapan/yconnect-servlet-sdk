@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,9 +24,9 @@
 
 package jp.co.yahoo.yconnect.core.http;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class HttpParametersTest {
 
@@ -37,7 +37,8 @@ public class HttpParametersTest {
         parameters.put("client_id", "clientId");
         parameters.put("redirect_uri", "https://example.co.jp");
 
-        String expect = "response_type=code&redirect_uri=https%3A%2F%2Fexample.co.jp&client_id=clientId";
+        String expect =
+                "response_type=code&redirect_uri=https%3A%2F%2Fexample.co.jp&client_id=clientId";
 
         assertEquals(expect, parameters.toQueryString());
     }

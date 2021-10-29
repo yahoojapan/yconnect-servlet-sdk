@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,11 +24,10 @@
 
 package jp.co.yahoo.yconnect.util;
 
-import jp.co.yahoo.yconnect.core.oidc.IdTokenObject;
-
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Base64;
+import jp.co.yahoo.yconnect.core.oidc.IdTokenObject;
 
 public class IdTokenGenerator {
 
@@ -44,16 +43,40 @@ public class IdTokenGenerator {
         PrivateKey privateKey = pair.getPrivate();
         publicKey = pair.getPublic();
 
-        String header = "{\"typ\": \"JWT\", \"alg\": \"RS256\", \"kid\": \"" + idTokenObject.getKid() + "\"}";
-        String base64Header = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(header.getBytes(StandardCharsets.UTF_8));
+        String header =
+                "{\"typ\": \"JWT\", \"alg\": \"RS256\", \"kid\": \""
+                        + idTokenObject.getKid()
+                        + "\"}";
+        String base64Header =
+                Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(header.getBytes(StandardCharsets.UTF_8));
 
-        String payload = "{\"iss\": \"" + idTokenObject.getIss() + "\", \"sub\": \"" + idTokenObject.getSub() + "\", " +
-                "\"aud\": [\"" + idTokenObject.getAud().get(0) + "\"], \"exp\": " + idTokenObject.getExp() + "," +
-                "\"iat\": " + idTokenObject.getIat() + ", \"nonce\": \"" + idTokenObject.getNonce() + "\", " +
-                "\"at_hash\": \"" + idTokenObject.getAtHash() + "\", \"auth_time\": " + idTokenObject.getAuthTime() + "}";
-        String base64Payload = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(payload.getBytes(StandardCharsets.UTF_8));
+        String payload =
+                "{\"iss\": \""
+                        + idTokenObject.getIss()
+                        + "\", \"sub\": \""
+                        + idTokenObject.getSub()
+                        + "\", "
+                        + "\"aud\": [\""
+                        + idTokenObject.getAud().get(0)
+                        + "\"], \"exp\": "
+                        + idTokenObject.getExp()
+                        + ","
+                        + "\"iat\": "
+                        + idTokenObject.getIat()
+                        + ", \"nonce\": \""
+                        + idTokenObject.getNonce()
+                        + "\", "
+                        + "\"at_hash\": \""
+                        + idTokenObject.getAtHash()
+                        + "\", \"auth_time\": "
+                        + idTokenObject.getAuthTime()
+                        + "}";
+        String base64Payload =
+                Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(payload.getBytes(StandardCharsets.UTF_8));
 
         Signature sign = Signature.getInstance("SHA256withRSA");
         sign.initSign(privateKey);
@@ -61,13 +84,20 @@ public class IdTokenGenerator {
         sign.update(".".getBytes(StandardCharsets.UTF_8));
         sign.update(base64Payload.getBytes(StandardCharsets.UTF_8));
 
-        String base64Signature = Base64.getUrlEncoder().withoutPadding().encodeToString(sign.sign());
+        String base64Signature =
+                Base64.getUrlEncoder().withoutPadding().encodeToString(sign.sign());
 
         idTokenString = base64Header + "." + base64Payload + "." + base64Signature;
 
-        String invalidHeader = "{\"typ\": \"JWT\", \"alg\": \"RS256\", \"kid\": \"" + idTokenObject.getKid() + "id" + "\"}";
-        String base64InvalidHeader = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(invalidHeader.getBytes(StandardCharsets.UTF_8));
+        String invalidHeader =
+                "{\"typ\": \"JWT\", \"alg\": \"RS256\", \"kid\": \""
+                        + idTokenObject.getKid()
+                        + "id"
+                        + "\"}";
+        String base64InvalidHeader =
+                Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(invalidHeader.getBytes(StandardCharsets.UTF_8));
 
         invalidIdTokenString = base64InvalidHeader + "." + base64Payload + "." + base64Signature;
     }

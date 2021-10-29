@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,15 +24,15 @@
 
 package jp.co.yahoo.yconnect.core.util;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class StringUtilTest {
 
     @Test
     public void testImplode() {
-        String[] pieces = new String[]{"token", "email", "profile"};
+        String[] pieces = new String[] {"token", "email", "profile"};
 
         String expect = "token email profile";
         assertEquals(expect, StringUtil.implode(pieces));
@@ -40,7 +40,7 @@ public class StringUtilTest {
 
     @Test
     public void testImplodeWithComma() {
-        String[] pieces = new String[]{"token", "email", "profile"};
+        String[] pieces = new String[] {"token", "email", "profile"};
 
         String expect = "token,email,profile";
         assertEquals(expect, StringUtil.implode(",", pieces));

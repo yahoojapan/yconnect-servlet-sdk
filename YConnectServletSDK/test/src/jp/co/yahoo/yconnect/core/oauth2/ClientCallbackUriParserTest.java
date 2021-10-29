@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,19 +24,19 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-import jp.co.yahoo.yconnect.core.http.HttpParameters;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
-
-import static org.junit.Assert.*;
+import jp.co.yahoo.yconnect.core.http.HttpParameters;
+import org.junit.Test;
 
 public class ClientCallbackUriParserTest {
 
     @Test
     public void testHasAuthorizationCodeReturnsTrue() throws Exception {
         String code = "sample_code";
-        ClientCallbackUriParser parser = new ClientCallbackUriParser("code=" + code + "&" + "state=state");
+        ClientCallbackUriParser parser =
+                new ClientCallbackUriParser("code=" + code + "&" + "state=state");
 
         assertTrue(parser.hasAuthorizationCode());
     }
@@ -58,14 +58,15 @@ public class ClientCallbackUriParserTest {
     @Test
     public void testGetAuthorizationCode() throws Exception {
         String code = "sample_code";
-        ClientCallbackUriParser parser = new ClientCallbackUriParser("code=" + code + "&" + "state=state");
+        ClientCallbackUriParser parser =
+                new ClientCallbackUriParser("code=" + code + "&" + "state=state");
 
         assertEquals(code, parser.getAuthorizationCode("state"));
     }
 
     @Test
     public void testGetAuthorizationCodeReturnsNull() throws Exception {
-        ClientCallbackUriParser parser = new ClientCallbackUriParser( "state=state");
+        ClientCallbackUriParser parser = new ClientCallbackUriParser("state=state");
 
         assertNull(parser.getAuthorizationCode("state"));
     }
@@ -73,9 +74,13 @@ public class ClientCallbackUriParserTest {
     @Test()
     public void testGetAuthorizationCodeThrowAuthorizationException() throws Exception {
         String code = "sample_code";
-        ClientCallbackUriParser parser = new ClientCallbackUriParser("code=" + code + "&" + "state=state");
+        ClientCallbackUriParser parser =
+                new ClientCallbackUriParser("code=" + code + "&" + "state=state");
 
-        AuthorizationException ex = assertThrows(AuthorizationException.class, () -> parser.getAuthorizationCode("invalid_state"));
+        AuthorizationException ex =
+                assertThrows(
+                        AuthorizationException.class,
+                        () -> parser.getAuthorizationCode("invalid_state"));
         assertEquals("Not Match State.", ex.getError());
         assertEquals("", ex.getMessage());
     }
@@ -84,7 +89,8 @@ public class ClientCallbackUriParserTest {
     public void testParseUri() throws Exception {
         String code = "sample_code";
         String state = "sample_state";
-        ClientCallbackUriParser parser = new ClientCallbackUriParser("code=" + code + "&" + "state=" + state);
+        ClientCallbackUriParser parser =
+                new ClientCallbackUriParser("code=" + code + "&" + "state=" + state);
 
         Field parametersField = ClientCallbackUriParser.class.getDeclaredField("parameters");
         parametersField.setAccessible(true);
@@ -95,13 +101,20 @@ public class ClientCallbackUriParserTest {
     }
 
     @Test
-    public void testParseUriThrowsAuthorizationException() throws Exception {
+    public void testParseUriThrowsAuthorizationException() {
         String error = "sample_error";
         String errorDescription = "sample_error_description";
 
-        AuthorizationException ex = assertThrows(AuthorizationException.class, () -> {
-            new ClientCallbackUriParser("error=" + error + "&" + "error_description=" + errorDescription);
-        });
+        AuthorizationException ex =
+                assertThrows(
+                        AuthorizationException.class,
+                        () ->
+                                new ClientCallbackUriParser(
+                                        "error="
+                                                + error
+                                                + "&"
+                                                + "error_description="
+                                                + errorDescription));
 
         assertEquals(error, ex.getError());
         assertEquals(errorDescription, ex.getErrorDescription());

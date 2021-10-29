@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,99 +28,88 @@ package jp.co.yahoo.yconnect.core.oauth2;
  * OAuth 2.0 Bearer Token
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class BearerToken {
 
-  /**
-   * Access Tokenの文字列
-   */
-  private String accessToken = "";
+    /** Access Tokenの文字列 */
+    private final String accessToken;
 
-  /**
-   * Access Tokenの有効期限（Unixタイムスタンプ）
-   */
-  private long expiration = 0L;
+    /** Access Tokenの有効期限（Unixタイムスタンプ） */
+    private final long expiration;
 
-  /**
-   * Refresh Tokenの文字列
-   */
-  private String refreshToken = null;
+    /** Refresh Tokenの文字列 */
+    private String refreshToken = null;
 
-  /**
-   * Scopeの文字列
-   */
-  private String scope = null;
+    /** Scopeの文字列 */
+    private String scope = null;
 
-  /**
-   * OAuth2BearerTokenのコンストラクタです。
-   * 
-   * @param accessToken Access Tokenの文字列
-   * @param expiration Access Tokenの有効期限（Unixタイムスタンプ）
-   */
-  public BearerToken(String accessToken, long expiration) {
-    this.accessToken = accessToken;
-    this.expiration = expiration;
-  }
-
-  public BearerToken(String accessToken, long expiration, String refreshToken) {
-    this.accessToken = accessToken;
-    this.expiration = expiration;
-    this.refreshToken = refreshToken;
-  }
-
-  public BearerToken(String accessToken, long expiration, String refreshToken, String scope) {
-    this.accessToken = accessToken;
-    this.expiration = expiration;
-    this.refreshToken = refreshToken;
-    this.scope = scope;
-  }
-
-  public String getAccessToken() {
-    return accessToken;
-  }
-
-  public long getExpiration() {
-    return expiration;
-  }
-
-  public String getRefreshToken() {
-    return refreshToken;
-  }
-
-  public String getScope() {
-    return scope;
-  }
-
-  /**
-   * Authorizationヘッダ用の文字列を返します。
-   * 
-   * @return Access Tokenの文字列
-   */
-  public String toAuthorizationHeader() {
-    return getAccessToken();
-  }
-
-  /**
-   * Query String形式の文字列を返します。
-   * 
-   * @return クエリ文字列
-   */
-  public String toQueryString() {
-    return "access_token=" + accessToken;
-  }
-
-  public String toString() {
-    String result =
-        "{" + "access_token: " + accessToken + ", " + "expidation: " + Long.toString(expiration);
-    if (refreshToken != null) {
-      result += ", refresh_token: " + refreshToken;
+    /**
+     * OAuth2BearerTokenのコンストラクタです。
+     *
+     * @param accessToken Access Tokenの文字列
+     * @param expiration Access Tokenの有効期限（Unixタイムスタンプ）
+     */
+    public BearerToken(String accessToken, long expiration) {
+        this.accessToken = accessToken;
+        this.expiration = expiration;
     }
-    if (scope != null) {
-      result += ", scope: " + scope;
-    }
-    result += "}";
-    return result;
-  }
 
+    public BearerToken(String accessToken, long expiration, String refreshToken) {
+        this.accessToken = accessToken;
+        this.expiration = expiration;
+        this.refreshToken = refreshToken;
+    }
+
+    public BearerToken(String accessToken, long expiration, String refreshToken, String scope) {
+        this.accessToken = accessToken;
+        this.expiration = expiration;
+        this.refreshToken = refreshToken;
+        this.scope = scope;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public long getExpiration() {
+        return expiration;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    /**
+     * Authorizationヘッダ用の文字列を返します。
+     *
+     * @return Access Tokenの文字列
+     */
+    public String toAuthorizationHeader() {
+        return getAccessToken();
+    }
+
+    /**
+     * Query String形式の文字列を返します。
+     *
+     * @return クエリ文字列
+     */
+    public String toQueryString() {
+        return "access_token=" + accessToken;
+    }
+
+    public String toString() {
+        String result = "{ access_token: " + accessToken + ", expiration: " + expiration;
+        if (refreshToken != null) {
+            result += ", refresh_token: " + refreshToken;
+        }
+        if (scope != null) {
+            result += ", scope: " + scope;
+        }
+        result += "}";
+        return result;
+    }
 }
