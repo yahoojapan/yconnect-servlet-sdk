@@ -25,13 +25,13 @@
 package jp.co.yahoo.yconnect.core.http;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import javax.net.ssl.SSLContext;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 import org.apache.http.Header;
@@ -40,6 +40,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -143,71 +144,14 @@ public class YHttpClient {
         // リクエストヘッダ設定
         HttpGet method = new HttpGet(urlString);
         if (requestHeaders != null) {
-            Iterator<String> itReqHeaders = requestHeaders.keySet().iterator();
-            while (itReqHeaders.hasNext()) {
-                String key = itReqHeaders.next();
+            for (String key : requestHeaders.keySet()) {
                 String value = requestHeaders.get(key);
                 method.setHeader(key, value);
                 YConnectLogger.debug(this, key + ": " + value);
             }
         }
 
-        if (urlString.startsWith("https")) {
-            if (!checkSSL) {
-                YConnectLogger.debug(this, "HTTPS ignore SSL Certification");
-                httpClient = new DefaultHttpClient();
-                ignoreSSLCertification(httpClient);
-            } else {
-                SSLContext sslContext;
-                try {
-                    sslContext = SSLContext.getInstance("TLSv1.2");
-                    sslContext.init(null, null, null);
-                    SSLSocketFactory sf = new SSLSocketFactory(sslContext);
-                    Scheme httpsScheme = new Scheme("https", 443, sf);
-                    SchemeRegistry schemeRegistry = new SchemeRegistry();
-                    schemeRegistry.register(httpsScheme);
-                    ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
-                    httpClient = new DefaultHttpClient(cm);
-                } catch (NoSuchAlgorithmException e1) {
-                    e1.printStackTrace();
-                } catch (KeyManagementException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }
-
-        try {
-
-            HttpResponse httpResponse = httpClient.execute(method);
-
-            // レスポンスコード、メッセージ取得
-            responseCode = httpResponse.getStatusLine().getStatusCode();
-            responseMessage = httpResponse.getStatusLine().getReasonPhrase();
-
-            YConnectLogger.debug(this, "responseCode: " + responseCode);
-            YConnectLogger.debug(this, "responseMessage: " + responseMessage);
-
-            // レスポンスヘッダ取得
-            Header[] headers = httpResponse.getAllHeaders();
-            for (Header header : headers) {
-                responseHeaders.put(header.getName(), header.getValue());
-            }
-
-            YConnectLogger.debug(this, "responseHeaders: " + responseHeaders);
-
-            // レスポンスボディ取得
-            HttpEntity httpEntity = httpResponse.getEntity();
-            responseBody = EntityUtils.toString(httpEntity);
-            httpEntity.getContent().close();
-
-            YConnectLogger.debug(this, "responseBody: " + responseBody);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            method.releaseConnection();
-            httpClient.getConnectionManager().shutdown();
-        }
+        request(urlString, method);
     }
 
     /**
@@ -226,51 +170,44 @@ public class YHttpClient {
 
         // リクエストヘッダ設定
         if (requestHeaders != null) {
-            Iterator<String> itReqHeaders = requestHeaders.keySet().iterator();
-            while (itReqHeaders.hasNext()) {
-                String key = itReqHeaders.next();
+            for (String key : requestHeaders.keySet()) {
                 String value = requestHeaders.get(key);
                 method.setHeader(key, value);
                 YConnectLogger.debug(this, key + ": " + value);
             }
         }
 
+        // リクエストパラメータ設定
         try {
-
-            // リクエストパラメータ設定
             String queryString = parameters.toQueryString();
+
             StringEntity paramEntity = new StringEntity(queryString);
             paramEntity.setChunked(false);
             paramEntity.setContentType("application/x-www-form-urlencoded");
             method.setEntity(paramEntity);
 
-            if (urlString.startsWith("https")) {
-                if (!checkSSL) {
-                    YConnectLogger.debug(this, "HTTPS ignore SSL Certification");
-                    httpClient = new DefaultHttpClient();
-                    ignoreSSLCertification(httpClient);
-                } else {
-                    SSLContext sslContext;
-                    try {
-                        sslContext = SSLContext.getInstance("TLSv1.2");
-                        sslContext.init(null, null, null);
-                        SSLSocketFactory sf = new SSLSocketFactory(sslContext);
-                        Scheme httpsScheme = new Scheme("https", 443, sf);
-                        SchemeRegistry schemeRegistry = new SchemeRegistry();
-                        schemeRegistry.register(httpsScheme);
-                        ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
-                        httpClient = new DefaultHttpClient(cm);
-                    } catch (NoSuchAlgorithmException e1) {
-                        e1.printStackTrace();
-                    } catch (KeyManagementException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-            }
-
             YConnectLogger.debug(this, "POST Body: " + queryString);
+        } catch (UnsupportedEncodingException ex) {
+            ex.printStackTrace();
+            return;
+        }
 
-            HttpResponse httpResponse = httpClient.execute(method);
+        request(urlString, method);
+    }
+
+    /**
+     * エンドポイントに対してHTTPリクエストします。
+     *
+     * @param urlString URL文字列
+     * @param request リクエストオブジェクト
+     */
+    private void request(String urlString, HttpRequestBase request) {
+        if (urlString.startsWith("https")) {
+            setSSLConfiguration();
+        }
+
+        try {
+            HttpResponse httpResponse = httpClient.execute(request);
 
             // レスポンスコード、メッセージ取得
             responseCode = httpResponse.getStatusLine().getStatusCode();
@@ -293,11 +230,10 @@ public class YHttpClient {
             httpEntity.getContent().close();
 
             YConnectLogger.debug(this, "responseBody: " + responseBody);
-
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            method.releaseConnection();
+            request.releaseConnection();
             httpClient.getConnectionManager().shutdown();
         }
     }
@@ -309,9 +245,7 @@ public class YHttpClient {
      */
     @SuppressWarnings("deprecation")
     private static void ignoreSSLCertification(HttpClient httpClient) {
-
         try {
-
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(null, null);
             SSLSocketFactory sslSocketFactory = new CustomSSLSocketFactory(keyStore);
@@ -319,10 +253,34 @@ public class YHttpClient {
             sslSocketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
             Scheme scheme = new Scheme("https", sslSocketFactory, 443);
             httpClient.getConnectionManager().getSchemeRegistry().register(scheme);
-
         } catch (Exception e) {
             YConnectLogger.error(YHttpClient.class, e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /** SSLの設定を行います。 */
+    private void setSSLConfiguration() {
+        if (!checkSSL) {
+            YConnectLogger.debug(this, "HTTPS ignore SSL Certification");
+            httpClient = new DefaultHttpClient();
+            ignoreSSLCertification(httpClient);
+            return;
+        }
+
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+            sslContext.init(null, null, null);
+            SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+            Scheme httpsScheme = new Scheme("https", 443, sf);
+            SchemeRegistry schemeRegistry = new SchemeRegistry();
+            schemeRegistry.register(httpsScheme);
+            ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
+            httpClient = new DefaultHttpClient(cm);
+        } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+        } catch (KeyManagementException e1) {
+            e1.printStackTrace();
         }
     }
 

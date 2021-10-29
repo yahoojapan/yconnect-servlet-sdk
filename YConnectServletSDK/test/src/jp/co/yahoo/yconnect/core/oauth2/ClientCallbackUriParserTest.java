@@ -24,7 +24,11 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
@@ -101,9 +105,22 @@ public class ClientCallbackUriParserTest {
     }
 
     @Test
-    public void testParseUriThrowsAuthorizationException() {
+    public void testParseUriByNull() throws Exception {
+        ClientCallbackUriParser parser = new ClientCallbackUriParser(null);
+
+        Field parametersField = ClientCallbackUriParser.class.getDeclaredField("parameters");
+        parametersField.setAccessible(true);
+        HttpParameters parameters = (HttpParameters) parametersField.get(parser);
+
+        assertNull(parameters.get("code"));
+        assertNull(parameters.get("state"));
+    }
+
+    @Test
+    public void testParseUriThrowsAuthorizationExceptionByError() {
         String error = "sample_error";
         String errorDescription = "sample_error_description";
+        String errorCode = "1000";
 
         AuthorizationException ex =
                 assertThrows(
@@ -112,11 +129,13 @@ public class ClientCallbackUriParserTest {
                                 new ClientCallbackUriParser(
                                         "error="
                                                 + error
-                                                + "&"
-                                                + "error_description="
-                                                + errorDescription));
+                                                + "&error_description="
+                                                + errorDescription
+                                                + "&error_code="
+                                                + errorCode));
 
         assertEquals(error, ex.getError());
         assertEquals(errorDescription, ex.getErrorDescription());
+        assertEquals(errorCode, ex.getErrorCode());
     }
 }

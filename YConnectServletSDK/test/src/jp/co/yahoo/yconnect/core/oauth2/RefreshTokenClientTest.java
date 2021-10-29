@@ -26,53 +26,43 @@ package jp.co.yahoo.yconnect.core.oauth2;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.StringReader;
+import javax.json.Json;
 import javax.json.JsonObject;
-import jp.co.yahoo.yconnect.core.http.HttpHeaders;
+import javax.json.JsonReader;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
-import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import org.junit.Test;
 
 public class RefreshTokenClientTest {
 
     @Test
     public void testFetch() throws Exception {
+        String refreshToken = "sample_refresh_token";
+
         String accessTokenSample = "sample_token";
         long expiresIn = 3600;
+
+        String json =
+                "{\"access_token\":\""
+                        + accessTokenSample
+                        + "\", \"expires_in\":"
+                        + expiresIn
+                        + "}";
+        JsonReader jsonReader = Json.createReader(new StringReader(json));
+        JsonObject jsonObject = jsonReader.readObject();
+        jsonReader.close();
 
         RefreshTokenClient client =
                 new RefreshTokenClient(
                         "https://example.co.jp",
-                        "sample_refresh_token",
+                        refreshToken,
                         "sample_client_id",
                         "sample_client_secret") {
                     @Override
-                    protected YHttpClient getYHttpClient() {
-                        return new YHttpClient() {
-                            @Override
-                            public void requestPost(
-                                    String endpointUrl,
-                                    HttpParameters parameters,
-                                    HttpHeaders requestHeaders) {}
-
-                            @Override
-                            public HttpHeaders getResponseHeaders() {
-                                return new HttpHeaders();
-                            }
-
-                            @Override
-                            public String getResponseBody() {
-                                return "{\"access_token\":\""
-                                        + accessTokenSample
-                                        + "\", \"expires_in\":"
-                                        + expiresIn
-                                        + "}";
-                            }
-
-                            @Override
-                            public int getStatusCode() {
-                                return 200;
-                            }
-                        };
+                    protected JsonObject request(HttpParameters parameters) {
+                        assertEquals(OAuth2GrantType.REFRESH_TOKEN, parameters.get("grant_type"));
+                        assertEquals(refreshToken, parameters.get("refresh_token"));
+                        return jsonObject;
                     }
                 };
 
@@ -92,34 +82,7 @@ public class RefreshTokenClientTest {
                         "sample_client_id",
                         "sample_client_secret") {
                     @Override
-                    protected YHttpClient getYHttpClient() {
-                        return new YHttpClient() {
-                            @Override
-                            public void requestPost(
-                                    String endpointUrl,
-                                    HttpParameters parameters,
-                                    HttpHeaders requestHeaders) {}
-
-                            @Override
-                            public HttpHeaders getResponseHeaders() {
-                                return new HttpHeaders();
-                            }
-
-                            @Override
-                            public String getResponseBody() {
-                                return "{\"error\":\"sample_error\", \"error_description\":\"sample_error_description\"}";
-                            }
-
-                            @Override
-                            public int getStatusCode() {
-                                return 400;
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected void checkErrorResponse(int statusCode, JsonObject jsonObject)
-                            throws TokenException {
+                    protected JsonObject request(HttpParameters parameters) throws TokenException {
                         throw new TokenException("error_sample", "error_description_sample", 1000);
                     }
                 };

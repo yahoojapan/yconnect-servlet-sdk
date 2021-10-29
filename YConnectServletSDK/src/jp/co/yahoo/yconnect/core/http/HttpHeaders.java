@@ -25,7 +25,6 @@
 package jp.co.yahoo.yconnect.core.http;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * HTTP Headers Class
@@ -47,14 +46,12 @@ public class HttpHeaders extends HashMap<String, String> {
      * @return all headers of type string.
      */
     public String toHeaderString() {
-        String headers = "";
+        StringBuilder headers = new StringBuilder();
         String indent = "";
-        Iterator<String> iterator = this.keySet().iterator();
-        while (iterator.hasNext()) {
-            String key = iterator.next();
-            headers += indent + key + ": " + this.get(key);
+        for (String key : this.keySet()) {
+            headers.append(indent).append(key).append(": ").append(this.get(key));
             indent = "\n";
         }
-        return headers;
+        return headers.toString();
     }
 }

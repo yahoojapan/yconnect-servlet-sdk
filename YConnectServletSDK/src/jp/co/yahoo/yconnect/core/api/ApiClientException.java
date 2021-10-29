@@ -104,10 +104,7 @@ public class ApiClientException extends Exception {
      * @return true if this error is "invalid_request"; false otherwise.
      */
     public boolean isInvalidRequest() {
-        if ("invalid_request".equals(error)) {
-            return true;
-        }
-        return false;
+        return "invalid_request".equals(error);
     }
 
     /**
@@ -116,10 +113,7 @@ public class ApiClientException extends Exception {
      * @return true if this error is "invalid_token"; false otherwise.
      */
     public boolean isInvalidToken() {
-        if ("invalid_token".equals(error)) {
-            return true;
-        }
-        return false;
+        return "invalid_token".equals(error);
     }
 
     /**
@@ -128,10 +122,7 @@ public class ApiClientException extends Exception {
      * @return true if this error is "insufficient_scope"; false otherwise.
      */
     public boolean isInsufficientScope() {
-        if ("insufficient_scope".equals(error)) {
-            return true;
-        }
-        return false;
+        return "insufficient_scope".equals(error);
     }
 
     public String toString() {

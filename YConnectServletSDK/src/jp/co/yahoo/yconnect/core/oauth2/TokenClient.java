@@ -24,15 +24,9 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-import java.io.StringReader;
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
-import jp.co.yahoo.yconnect.core.http.HttpHeaders;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
-import jp.co.yahoo.yconnect.core.util.YConnectLogger;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Token Client Class
@@ -88,30 +82,11 @@ public class TokenClient extends AbstractTokenClient {
         parameters.put("code", authorizationCode);
         parameters.put("redirect_uri", redirectUri);
 
-        if (codeVerifier != null) parameters.put("code_verifier", codeVerifier);
+        if (codeVerifier != null) {
+            parameters.put("code_verifier", codeVerifier);
+        }
 
-        String credential = clientId + ":" + clientSecret;
-        String basic = new String(Base64.encodeBase64(credential.getBytes()));
-
-        HttpHeaders requestHeaders = new HttpHeaders();
-        requestHeaders.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-        requestHeaders.put("Authorization", "Basic " + basic);
-
-        YHttpClient client = getYHttpClient();
-        client.requestPost(endpointUrl, parameters, requestHeaders);
-
-        YConnectLogger.debug(TAG, client.getResponseHeaders().toString());
-        YConnectLogger.debug(TAG, client.getResponseBody());
-
-        String json = client.getResponseBody();
-        JsonReader jsonReader = Json.createReader(new StringReader(json));
-
-        JsonObject jsonObject = jsonReader.readObject();
-        jsonReader.close();
-
-        int statusCode = client.getStatusCode();
-
-        checkErrorResponse(statusCode, jsonObject);
+        JsonObject jsonObject = request(parameters);
 
         String accessTokenString = jsonObject.getString("access_token");
         long expiresIn = jsonObject.getJsonNumber("expires_in").longValue();

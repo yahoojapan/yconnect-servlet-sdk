@@ -66,74 +66,71 @@ public class UserInfoClient extends ApiClient {
         JsonReader jsonReader = Json.createReader(new StringReader(json));
         JsonObject rootObject = jsonReader.readObject();
         jsonReader.close();
-        JsonObject rootJsonObject = rootObject;
 
-        if (rootJsonObject.containsKey("sub")) {
-            userInfoObject = new UserInfoObject(rootJsonObject.getString("sub"));
+        if (rootObject.containsKey("sub")) {
+            userInfoObject = new UserInfoObject(rootObject.getString("sub"));
         }
-        if (rootJsonObject.containsKey("ppid_sub")) {
-            userInfoObject.setPpidSub(rootJsonObject.getString("ppid_sub"));
+        if (rootObject.containsKey("ppid_sub")) {
+            userInfoObject.setPpidSub(rootObject.getString("ppid_sub"));
         }
-        if (rootJsonObject.containsKey("locale")) {
-            userInfoObject.setLocale(rootJsonObject.getString("locale"));
+        if (rootObject.containsKey("locale")) {
+            userInfoObject.setLocale(rootObject.getString("locale"));
         }
-        if (rootJsonObject.containsKey("name")) {
-            userInfoObject.setName(rootJsonObject.getString("name"));
+        if (rootObject.containsKey("name")) {
+            userInfoObject.setName(rootObject.getString("name"));
         }
-        if (rootJsonObject.containsKey("given_name")) {
-            userInfoObject.setGivenName(rootJsonObject.getString("given_name"));
+        if (rootObject.containsKey("given_name")) {
+            userInfoObject.setGivenName(rootObject.getString("given_name"));
         }
-        if (rootJsonObject.containsKey("given_name#ja-Kana-JP")) {
-            userInfoObject.setGivenNameJaKanaJp(rootJsonObject.getString("given_name#ja-Kana-JP"));
+        if (rootObject.containsKey("given_name#ja-Kana-JP")) {
+            userInfoObject.setGivenNameJaKanaJp(rootObject.getString("given_name#ja-Kana-JP"));
         }
-        if (rootJsonObject.containsKey("given_name#ja-Hani-JP")) {
-            userInfoObject.setGivenNameJaHaniJp(rootJsonObject.getString("given_name#ja-Hani-JP"));
+        if (rootObject.containsKey("given_name#ja-Hani-JP")) {
+            userInfoObject.setGivenNameJaHaniJp(rootObject.getString("given_name#ja-Hani-JP"));
         }
-        if (rootJsonObject.containsKey("family_name")) {
-            userInfoObject.setFamilyName(rootJsonObject.getString("family_name"));
+        if (rootObject.containsKey("family_name")) {
+            userInfoObject.setFamilyName(rootObject.getString("family_name"));
         }
-        if (rootJsonObject.containsKey("family_name#ja-Kana-JP")) {
-            userInfoObject.setFamilyNameJaKanaJp(
-                    rootJsonObject.getString("family_name#ja-Kana-JP"));
+        if (rootObject.containsKey("family_name#ja-Kana-JP")) {
+            userInfoObject.setFamilyNameJaKanaJp(rootObject.getString("family_name#ja-Kana-JP"));
         }
-        if (rootJsonObject.containsKey("family_name#ja-Hani-JP")) {
-            userInfoObject.setFamilyNameJaHaniJp(
-                    rootJsonObject.getString("family_name#ja-Hani-JP"));
+        if (rootObject.containsKey("family_name#ja-Hani-JP")) {
+            userInfoObject.setFamilyNameJaHaniJp(rootObject.getString("family_name#ja-Hani-JP"));
         }
-        if (rootJsonObject.containsKey("email")) {
-            userInfoObject.setEmail(rootJsonObject.getString("email"));
+        if (rootObject.containsKey("email")) {
+            userInfoObject.setEmail(rootObject.getString("email"));
         }
-        if (rootJsonObject.containsKey("email_verified")) {
+        if (rootObject.containsKey("email_verified")) {
             try {
                 userInfoObject.setEmailVerified(
-                        ((Boolean) rootJsonObject.getBoolean("email_verified")).toString());
+                        ((Boolean) rootObject.getBoolean("email_verified")).toString());
             } catch (ClassCastException e) {
                 userInfoObject.setEmailVerified("false");
             }
         }
-        if (rootJsonObject.containsKey("gender")) {
-            userInfoObject.setGender(rootJsonObject.getString("gender"));
+        if (rootObject.containsKey("gender")) {
+            userInfoObject.setGender(rootObject.getString("gender"));
         }
-        if (rootJsonObject.containsKey("zoneinfo")) {
-            userInfoObject.setZoneinfo(rootJsonObject.getString("zoneinfo"));
+        if (rootObject.containsKey("zoneinfo")) {
+            userInfoObject.setZoneinfo(rootObject.getString("zoneinfo"));
         }
-        if (rootJsonObject.containsKey("birthdate")) {
-            userInfoObject.setBirthdate(rootJsonObject.getString("birthdate"));
+        if (rootObject.containsKey("birthdate")) {
+            userInfoObject.setBirthdate(rootObject.getString("birthdate"));
         }
-        if (rootJsonObject.containsKey("nickname")) {
-            userInfoObject.setNickname(rootJsonObject.getString("nickname"));
+        if (rootObject.containsKey("nickname")) {
+            userInfoObject.setNickname(rootObject.getString("nickname"));
         }
-        if (rootJsonObject.containsKey("picture")) {
-            userInfoObject.setPicture(rootJsonObject.getString("picture"));
+        if (rootObject.containsKey("picture")) {
+            userInfoObject.setPicture(rootObject.getString("picture"));
         }
-        if (rootJsonObject.containsKey("address")) {
-            if (rootJsonObject.get("address") != null) {
-                JsonObject addressJSONObject = (JsonObject) rootJsonObject.get("address");
+        if (rootObject.containsKey("address")) {
+            if (rootObject.get("address") != null) {
+                JsonObject addressJSONObject = (JsonObject) rootObject.get("address");
                 addressParser(addressJSONObject);
             }
         }
 
-        userInfoObject.setJsonObject(rootJsonObject);
+        userInfoObject.setJsonObject(rootObject);
     }
 
     private void addressParser(JsonObject addressJSONObject) {

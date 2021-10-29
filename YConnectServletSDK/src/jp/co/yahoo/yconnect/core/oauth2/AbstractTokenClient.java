@@ -24,9 +24,16 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
+import java.io.StringReader;
+import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.json.JsonString;
+import jp.co.yahoo.yconnect.core.http.HttpHeaders;
+import jp.co.yahoo.yconnect.core.http.HttpParameters;
+import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import jp.co.yahoo.yconnect.core.util.YConnectLogger;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * Abstract Token Client Class
@@ -57,25 +64,64 @@ abstract class AbstractTokenClient {
         return accessToken;
     }
 
-    protected void checkErrorResponse(int statusCode, JsonObject jsonObject) throws TokenException {
+    /**
+     * エンドポイントに対してHTTPリクエストします。
+     *
+     * @param parameters postパラメータ
+     * @return HTTPレスポンスボディのJSONオブジェクト
+     * @throws TokenException レスポンスにエラーが含まれているときに発生
+     */
+    protected JsonObject request(HttpParameters parameters) throws TokenException {
+        String credential = clientId + ":" + clientSecret;
+        String basic = new String(Base64.encodeBase64(credential.getBytes()));
 
-        if (statusCode >= 400) {
-            JsonString errorJsonString = jsonObject.getJsonString("error");
-            if (errorJsonString != null) {
-                String error = errorJsonString.getString();
-                String errorDescription = jsonObject.getString("error_description");
-                int errorCode = jsonObject.getInt("error_code");
-                YConnectLogger.error(TAG, error + " / " + errorDescription + " / " + errorCode);
-                throw new TokenException(error, errorDescription, errorCode);
-            } else {
-                YConnectLogger.error(TAG, "An unexpected error has occurred.");
-                throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
-            }
-        } else if (statusCode == 200) {
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+        requestHeaders.put("Authorization", "Basic " + basic);
+
+        YHttpClient client = getYHttpClient();
+        client.requestPost(endpointUrl, parameters, requestHeaders);
+
+        YConnectLogger.debug(TAG, client.getResponseHeaders().toString());
+        YConnectLogger.debug(TAG, client.getResponseBody());
+
+        String json = client.getResponseBody();
+        JsonReader jsonReader = Json.createReader(new StringReader(json));
+        JsonObject jsonObject = jsonReader.readObject();
+        jsonReader.close();
+
+        int statusCode = client.getStatusCode();
+
+        checkErrorResponse(statusCode, jsonObject);
+
+        return jsonObject;
+    }
+
+    protected void checkErrorResponse(int statusCode, JsonObject jsonObject) throws TokenException {
+        if (statusCode == 200) {
             return;
-        } else {
+        }
+        if (statusCode < 400) {
             YConnectLogger.error(TAG, "An unexpected error has occurred.");
             throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
         }
+
+        JsonString errorJsonString = jsonObject.getJsonString("error");
+
+        if (errorJsonString == null) {
+            YConnectLogger.error(TAG, "An unexpected error has occurred.");
+            throw new TokenException("An unexpected error has occurred.", "", (Integer) null);
+        }
+
+        String error = errorJsonString.getString();
+        String errorDescription = jsonObject.getString("error_description");
+        int errorCode = jsonObject.getInt("error_code");
+
+        YConnectLogger.error(TAG, error + " / " + errorDescription + " / " + errorCode);
+        throw new TokenException(error, errorDescription, errorCode);
+    }
+
+    protected YHttpClient getYHttpClient() {
+        return new YHttpClient();
     }
 }

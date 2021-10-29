@@ -118,10 +118,7 @@ public class TokenException extends Exception {
      * @return true if this error is "invalid_request"; false otherwise.
      */
     public boolean isInvalidRequest() {
-        if ("invalid_request".equals(error)) {
-            return true;
-        }
-        return false;
+        return "invalid_request".equals(error);
     }
 
     /**
@@ -130,10 +127,7 @@ public class TokenException extends Exception {
      * @return true if this error is "unauthorized_client"; false otherwise.
      */
     public boolean isUnauthorizedClient() {
-        if ("unauthorized_client".equals(error)) {
-            return true;
-        }
-        return false;
+        return "unauthorized_client".equals(error);
     }
 
     /**
@@ -142,10 +136,7 @@ public class TokenException extends Exception {
      * @return true if this error is "access_denied"; false otherwise.
      */
     public boolean isAccessDenied() {
-        if ("access_denied".equals(error)) {
-            return true;
-        }
-        return false;
+        return "access_denied".equals(error);
     }
 
     /**
@@ -154,10 +145,7 @@ public class TokenException extends Exception {
      * @return true if this error is "unsupported_response_type"; false otherwise.
      */
     public boolean isUnsupportedResponseType() {
-        if ("unsupported_response_type".equals(error)) {
-            return true;
-        }
-        return false;
+        return "unsupported_response_type".equals(error);
     }
 
     /**
@@ -166,10 +154,7 @@ public class TokenException extends Exception {
      * @return true if this error is "invalid_scope"; false otherwise.
      */
     public boolean isInvalidScope() {
-        if ("invalid_scope".equals(error)) {
-            return true;
-        }
-        return false;
+        return "invalid_scope".equals(error);
     }
 
     /**
@@ -178,10 +163,7 @@ public class TokenException extends Exception {
      * @return true if this error is "server_error"; false otherwise.
      */
     public boolean isServerError() {
-        if ("server_error".equals(error)) {
-            return true;
-        }
-        return false;
+        return "server_error".equals(error);
     }
 
     /**
@@ -190,10 +172,7 @@ public class TokenException extends Exception {
      * @return true if this error is "temporarily_available"; false otherwise.
      */
     public boolean isTemporarilyUnavailable() {
-        if ("temporarily_available".equals(error)) {
-            return true;
-        }
-        return false;
+        return "temporarily_available".equals(error);
     }
 
     /**
@@ -202,10 +181,7 @@ public class TokenException extends Exception {
      * @return true if this error is "invalid_grant"; false otherwise.
      */
     public boolean isInvalidGrant() {
-        if ("invalid_grant".equals(error)) {
-            return true;
-        }
-        return false;
+        return "invalid_grant".equals(error);
     }
 
     public String toString() {

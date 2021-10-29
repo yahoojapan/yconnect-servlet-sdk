@@ -31,7 +31,6 @@ import jp.co.yahoo.yconnect.core.api.ApiClient;
 import jp.co.yahoo.yconnect.core.api.ApiClientException;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
 import jp.co.yahoo.yconnect.core.oauth2.*;
-import jp.co.yahoo.yconnect.core.oauth2.ClientCallbackUriParser;
 import jp.co.yahoo.yconnect.core.oidc.*;
 import jp.co.yahoo.yconnect.core.util.StringUtil;
 import org.apache.commons.codec.binary.Base64;

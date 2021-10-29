@@ -32,13 +32,13 @@ package jp.co.yahoo.yconnect.core.util;
 public class StringUtil {
 
     public static String implode(String glue, String[] pieces) {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         String delimiter = "";
         for (String piece : pieces) {
-            result += delimiter + piece;
+            result.append(delimiter).append(piece);
             delimiter = glue;
         }
-        return result;
+        return result.toString();
     }
 
     public static String implode(String[] pieces) {

@@ -41,27 +41,25 @@ public class ClientCallbackUriParser {
     }
 
     public boolean hasAuthorizationCode() {
-        if (parameters.get("code") != null) {
-            return true;
-        }
-        return false;
+        return parameters.get("code") != null;
     }
 
     public String getAuthorizationCode(String state) throws AuthorizationException {
         YConnectLogger.debug(
                 this, "Response state=" + parameters.get("state") + ", Input state=" + state);
-        if (state.equals(parameters.get("state"))) {
-            String authCodeString = parameters.get("code");
-            if (authCodeString != null) {
-                return authCodeString;
-            } else {
-                YConnectLogger.info(this, "No authorization code parameters.");
-                return null;
-            }
-        } else {
+
+        if (!state.equals(parameters.get("state"))) {
             YConnectLogger.error(this, "Not Match State.");
             throw new AuthorizationException("Not Match State.", "", "");
         }
+
+        String authCodeString = parameters.get("code");
+        if (authCodeString == null) {
+            YConnectLogger.info(this, "No authorization code parameters.");
+            return null;
+        }
+
+        return authCodeString;
     }
 
     /**
@@ -72,19 +70,22 @@ public class ClientCallbackUriParser {
      */
     private void parseUri(String request) throws AuthorizationException {
         YConnectLogger.debug(this, "Response Uri: " + request);
-        if (request != null) {
-            for (String query : request.split("&")) {
-                if (query.contains("=")) {
-                    String name = query.split("=")[0];
-                    String value = query.split("=")[1];
-                    parameters.put(name, value);
-                    YConnectLogger.debug(this, "put param: " + name + "=>" + value);
-                }
+
+        if (request == null) {
+            return;
+        }
+
+        for (String query : request.split("&")) {
+            if (query.contains("=")) {
+                String name = query.split("=")[0];
+                String value = query.split("=")[1];
+                parameters.put(name, value);
+                YConnectLogger.debug(this, "put param: " + name + "=>" + value);
             }
         }
         YConnectLogger.debug(this, "all params: " + parameters.toQueryString());
 
-        if (parameters.get("error") != null) {
+        if (parameters.containsKey("error")) {
             String error = parameters.get("error");
             String errorDescription = parameters.get("error_description");
             String errorCode = parameters.get("error_code");
@@ -100,6 +101,7 @@ public class ClientCallbackUriParser {
 
             throw new AuthorizationException(error, errorDescription, errorCode);
         }
+
         YConnectLogger.debug(this, "Finished Parsing: " + parameters);
     }
 }

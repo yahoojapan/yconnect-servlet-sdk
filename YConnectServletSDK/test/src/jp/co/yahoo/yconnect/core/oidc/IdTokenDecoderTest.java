@@ -39,22 +39,22 @@ import org.junit.Test;
  */
 public class IdTokenDecoderTest {
 
-    // 正常系パラメーター値
-    String iss = "https://auth.login.yahoo.co.jp/yconnect/v2";
-    String sub = "USER_PPID";
-    long exp = 1411647139;
-    long iat = 1410437540;
-    long authTime = 1410437541;
-    String nonce = "abcdefg";
-    String atHash = "at_abcde";
-    String signature;
-    String clientId = "APPLICATION_ID";
-    String type = "JWT";
-    String algorithm = "RS256";
-    String kid = "sample_kid";
-
     @Test
     public void testDecodeIdToken() throws Exception {
+        // 正常系パラメーター値
+        String iss = "https://auth.login.yahoo.co.jp/yconnect/v2";
+        String sub = "USER_PPID";
+        long exp = 1411647139;
+        long iat = 1410437540;
+        long authTime = 1410437541;
+        String nonce = "abcdefg";
+        String atHash = "at_abcde";
+        String signature;
+        String clientId = "APPLICATION_ID";
+        String type = "JWT";
+        String algorithm = "RS256";
+        String kid = "sample_kid";
+
         IdTokenObject expected = new IdTokenObject();
         expected.setType(type);
         expected.setAlgorithm(algorithm);

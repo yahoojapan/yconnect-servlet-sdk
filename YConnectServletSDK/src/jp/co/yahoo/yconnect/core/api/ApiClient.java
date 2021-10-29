@@ -100,16 +100,16 @@ public class ApiClient {
     public void fetchResource(String url, String method) throws ApiClientException {
         YConnectLogger.debug(TAG, "request parameters: " + parameters.toQueryString());
         YConnectLogger.debug(TAG, "request headers: " + requestHeaders.toHeaderString());
-        YHttpClient client;
+
+        YHttpClient client = newHttpClient();
         if (POST_METHOD.equalsIgnoreCase(method)) {
-            client = newHttpClient();
             client.requestPost(url, parameters, requestHeaders);
         } else if (GET_METHOD.equalsIgnoreCase(method)) {
-            client = newHttpClient();
             client.requestGet(url, parameters, requestHeaders);
         } else {
             throw new ApiClientException("Undefined Http method.", "");
         }
+
         responseCode = client.getStatusCode();
         responseMessage = client.getStatusMessage();
         responseHeaders = client.getResponseHeaders();
@@ -186,26 +186,29 @@ public class ApiClient {
     }
 
     private void checkErrorResponse() throws ApiClientException {
+        if (responseCode == 200) {
+            return;
+        }
 
         String wwwAuthHeader = responseHeaders.get("WWW-Authenticate");
-        if (responseCode != 200) {
-            if (wwwAuthHeader != null) {
-                YConnectLogger.debug(TAG, wwwAuthHeader);
-                HashMap<String, String> wwwAuthHeaderHashMap = extractWWWAuthHeader(wwwAuthHeader);
-                YConnectLogger.debug(TAG, wwwAuthHeaderHashMap.toString());
-                String error = wwwAuthHeaderHashMap.get("error");
-                String errorDescription = wwwAuthHeaderHashMap.get("error_description");
-                throw new ApiClientException(error, errorDescription);
-            } else {
-                throw new ApiClientException(
-                        "Failed Request.(status code: "
-                                + responseCode
-                                + " status message: "
-                                + responseMessage
-                                + ")",
-                        responseHeaders.toString());
-            }
+
+        if (wwwAuthHeader == null) {
+            throw new ApiClientException(
+                    "Failed Request.(status code: "
+                            + responseCode
+                            + " status message: "
+                            + responseMessage
+                            + ")",
+                    responseHeaders.toString());
         }
+
+        YConnectLogger.debug(TAG, wwwAuthHeader);
+        HashMap<String, String> wwwAuthHeaderHashMap = extractWWWAuthHeader(wwwAuthHeader);
+        YConnectLogger.debug(TAG, wwwAuthHeaderHashMap.toString());
+        String error = wwwAuthHeaderHashMap.get("error");
+        String errorDescription = wwwAuthHeaderHashMap.get("error_description");
+
+        throw new ApiClientException(error, errorDescription);
     }
 
     private static HashMap<String, String> extractWWWAuthHeader(String wwwAuthHeader) {

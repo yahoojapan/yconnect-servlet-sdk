@@ -27,7 +27,6 @@ package jp.co.yahoo.yconnect.core.http;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * HTTP Parameters Class
@@ -49,18 +48,19 @@ public class HttpParameters extends HashMap<String, String> {
      * @return query string.
      */
     public String toQueryString() {
-        String query = "";
+        StringBuilder query = new StringBuilder();
         String ampersand = "";
-        Iterator<String> iterator = this.keySet().iterator();
-        while (iterator.hasNext()) {
-            String key = iterator.next();
+        for (String key : this.keySet()) {
             try {
-                query += ampersand + key + "=" + URLEncoder.encode(this.get(key), "UTF-8");
+                query.append(ampersand)
+                        .append(key)
+                        .append("=")
+                        .append(URLEncoder.encode(this.get(key), "UTF-8"));
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
             ampersand = "&";
         }
-        return query;
+        return query.toString();
     }
 }

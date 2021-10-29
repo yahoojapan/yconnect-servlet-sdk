@@ -25,12 +25,17 @@
 package jp.co.yahoo.yconnect.core.oauth2;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import jp.co.yahoo.yconnect.core.http.HttpHeaders;
+import jp.co.yahoo.yconnect.core.http.HttpParameters;
+import jp.co.yahoo.yconnect.core.http.YHttpClient;
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
 public class AbstractTokenClientTest {
@@ -40,6 +45,115 @@ public class AbstractTokenClientTest {
                 @Override
                 void fetch() {}
             };
+
+    @Test
+    public void testRequest() throws Exception {
+        String clientIdSample = "sample_client_id";
+        String clientSecretSample = "sample_client_secret";
+        String accessTokenSample = "sample_token";
+        long expiresIn = 3600;
+
+        AbstractTokenClient client =
+                new AbstractTokenClient(null, clientIdSample, clientSecretSample) {
+                    @Override
+                    void fetch() throws TokenException {}
+
+                    @Override
+                    protected YHttpClient getYHttpClient() {
+                        return new YHttpClient() {
+                            @Override
+                            public void requestPost(
+                                    String endpointUrl,
+                                    HttpParameters parameters,
+                                    HttpHeaders requestHeaders) {
+                                assertEquals(
+                                        "application/x-www-form-urlencoded;charset=UTF-8",
+                                        requestHeaders.get("Content-Type"));
+                                String credential = clientIdSample + ":" + clientSecretSample;
+                                String basic =
+                                        new String(Base64.encodeBase64(credential.getBytes()));
+                                assertEquals("Basic " + basic, requestHeaders.get("Authorization"));
+                            }
+
+                            @Override
+                            public HttpHeaders getResponseHeaders() {
+                                return new HttpHeaders();
+                            }
+
+                            @Override
+                            public String getResponseBody() {
+                                return "{\"access_token\":\""
+                                        + accessTokenSample
+                                        + "\", \"expires_in\":"
+                                        + expiresIn
+                                        + "}";
+                            }
+
+                            @Override
+                            public int getStatusCode() {
+                                return 200;
+                            }
+                        };
+                    }
+                };
+
+        JsonObject result = client.request(new HttpParameters());
+
+        assertEquals(accessTokenSample, result.getString("access_token"));
+        assertEquals(expiresIn, result.getJsonNumber("expires_in").longValue());
+    }
+
+    @Test
+    public void testRequestThrowsTokenException() throws Exception {
+        String error = "error_sample";
+        String errorDescription = "error_description_sample";
+        Integer errorCode = 1000;
+
+        AbstractTokenClient client =
+                new AbstractTokenClient(null, null, null) {
+                    @Override
+                    void fetch() throws TokenException {}
+
+                    @Override
+                    protected YHttpClient getYHttpClient() {
+                        return new YHttpClient() {
+                            @Override
+                            public void requestPost(
+                                    String endpointUrl,
+                                    HttpParameters parameters,
+                                    HttpHeaders requestHeaders) {}
+
+                            @Override
+                            public HttpHeaders getResponseHeaders() {
+                                return new HttpHeaders();
+                            }
+
+                            @Override
+                            public String getResponseBody() {
+                                return "{\"error\":\"sample_error\", \"error_description\":\"sample_error_description\"}";
+                            }
+
+                            @Override
+                            public int getStatusCode() {
+                                return 400;
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected void checkErrorResponse(int statusCode, JsonObject jsonObject)
+                            throws TokenException {
+                        throw new TokenException(error, errorDescription, errorCode);
+                    }
+                };
+
+        TokenException ex =
+                assertThrows(TokenException.class, () -> client.request(new HttpParameters()));
+
+        assertEquals(error, ex.getError());
+        assertEquals(errorDescription, ex.getErrorDescription());
+        assertEquals(errorCode, ex.getErrorCode());
+    }
 
     @Test
     public void checkErrorResponse() throws Exception {
@@ -90,6 +204,7 @@ public class AbstractTokenClientTest {
 
         assertEquals("An unexpected error has occurred.", ex.getError());
         assertEquals("", ex.getErrorDescription());
+        assertNull(ex.getErrorCode());
     }
 
     @Test
@@ -106,5 +221,6 @@ public class AbstractTokenClientTest {
 
         assertEquals("An unexpected error has occurred.", ex.getError());
         assertEquals("", ex.getErrorDescription());
+        assertNull(ex.getErrorCode());
     }
 }

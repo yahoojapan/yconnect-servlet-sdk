@@ -46,33 +46,28 @@ import org.junit.Test;
 public class IdTokenVerificationTest {
 
     // 正常系パラメーター値
-    String iss = "https://auth.login.yahoo.co.jp/yconnect/v2";
-    String sub = "USER_PPID";
-    long exp = 1411647139;
-    long iat = 1410437540;
-    long authTime = 1410437541;
-    String nonce = "abcdefg";
-    String atHash;
-    String clientId = "APPLICATION_ID";
-    String type = "JWT";
-    String algorithm = "RS256";
-    String kid = "sample_kid";
+    private final String iss = "https://auth.login.yahoo.co.jp/yconnect/v2";
+    private final long iat = 1410437540;
+    private final String nonce = "abcdefg";
+    private String atHash;
+    private final String clientId = "APPLICATION_ID";
+    private final String kid = "sample_kid";
 
-    String accessToken = "access_token";
+    private final String accessToken = "access_token";
 
-    IdTokenObject idTokenObject = new IdTokenObject();
+    private final IdTokenObject idTokenObject = new IdTokenObject();
 
     @Before
     public void beforeEach() {
-        idTokenObject.setType(type);
-        idTokenObject.setAlgorithm(algorithm);
+        idTokenObject.setType("JWT");
+        idTokenObject.setAlgorithm("RS256");
         idTokenObject.setKid(kid);
-        idTokenObject.setSub(sub);
+        idTokenObject.setSub("USER_PPID");
         idTokenObject.setIss(iss);
         idTokenObject.setAud(new ArrayList<>(Collections.singletonList(clientId)));
-        idTokenObject.setExp(exp);
+        idTokenObject.setExp(1411647139);
         idTokenObject.setIat(iat);
-        idTokenObject.setAuthTime(authTime);
+        idTokenObject.setAuthTime(1410437541);
         idTokenObject.setNonce(nonce);
         atHash = generateHash(accessToken);
         idTokenObject.setAtHash(atHash);
