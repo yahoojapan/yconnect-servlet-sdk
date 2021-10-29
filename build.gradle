@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id "com.diffplug.spotless" version "5.17.1"
 }
 
 jar.baseName 'jp.co.yahoo.yconnect'
@@ -29,5 +30,16 @@ sourceSets {
         java {
             srcDir 'YConnectServletSDK/src'
         }
+    }
+}
+
+spotless {
+    java {
+        target('YConnectServletSDK/src/**/*.java', 'YConnectServletSDK/test/src/**/*.java')
+
+        importOrder()
+        removeUnusedImports()
+
+        googleJavaFormat()
     }
 }
