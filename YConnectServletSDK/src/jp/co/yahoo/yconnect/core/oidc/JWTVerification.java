@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,101 +24,60 @@
 
 package jp.co.yahoo.yconnect.core.oidc;
 
-import jp.co.yahoo.yconnect.core.oidc.IdTokenDecoder;
-
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.util.zip.DataFormatException;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
 import org.apache.commons.codec.binary.Base64;
 
 /**
  * JSON Web Token 検証クラス
- * 
- * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
  *
+ * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
  */
 public class JWTVerification {
 
-  private String idTokenString;
+    private final String idTokenString;
 
-  private String dataPart;
+    private final PublicKey publicKey;
 
-  private String clientSecret;
-
-  /**
-   * JWTVerificationのコンストラクタ
-   * 
-   * @param clientSecret
-   * @param idTokenString
-   */
-  public JWTVerification(String clientSecret, String idTokenString) {
-    this.clientSecret = clientSecret;
-    this.idTokenString = idTokenString;
-  }
-
-  /**
-   * headerとpayloadの部分からsignatureを生成して一致しているかどうかを返す
-   * 
-   * @return
-   * @throws DataFormatException
-   */
-  public boolean verifyJWT() throws DataFormatException {
-    IdTokenDecoder idTokenDecoder = new IdTokenDecoder(this.idTokenString);
-    IdTokenObject idTokenObject = idTokenDecoder.decode();
-    return idTokenObject.getSignature().equals(generateSignature());
-  }
-
-  /**
-   * HMAC-SHA256の暗号化のチェックを行なうためのシグネチャを生成
-   * 
-   * @return 生成したシグネチャ
-   */
-  private String generateSignature() {
-    // macのインスタンスを生成する
-    Mac sha256_HMAC = null;
-    try {
-      sha256_HMAC = Mac.getInstance("HmacSHA256");
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
+    /**
+     * JWTVerificationのコンストラクタ
+     *
+     * @param publicKey 公開鍵
+     * @param idTokenString IDトークン文字列
+     */
+    public JWTVerification(PublicKey publicKey, String idTokenString) {
+        this.publicKey = publicKey;
+        this.idTokenString = idTokenString;
     }
 
-    // secret_keyの作成
-    SecretKeySpec secret_key = null;
-    try {
-      secret_key = new SecretKeySpec(this.clientSecret.getBytes("UTF-8"), "HmacSHA256");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    // macの初期化
-    try {
-      sha256_HMAC.init(secret_key);
-    } catch (InvalidKeyException e) {
-      e.printStackTrace();
-    }
+    /**
+     * headerとpayloadの部分からsignatureを生成して一致しているかどうかを返す
+     *
+     * @return 検証に成功するとtrue, 失敗するとfalse
+     * @throws DataFormatException IDトークンのデコードに失敗したときに発生
+     */
+    public boolean verifyJWT()
+            throws DataFormatException, NoSuchAlgorithmException, SignatureException,
+                    InvalidKeyException, UnsupportedEncodingException {
+        IdTokenDecoder idTokenDecoder = new IdTokenDecoder(this.idTokenString);
+        IdTokenObject idTokenObject = idTokenDecoder.decode();
 
-    String[] idTokenArray = this.idTokenString.split("\\.");
-    this.dataPart = idTokenArray[0] + "." + idTokenArray[1];
+        Signature verifier = getVerifier();
+        byte[] signatureBytes = Base64.decodeBase64(idTokenObject.getSignature());
 
-    String hash = null;
-    try {
-      hash = Base64.encodeBase64String(sha256_HMAC.doFinal(this.dataPart.getBytes("UTF-8")));
-    } catch (IllegalStateException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+        return verifier.verify(signatureBytes);
     }
 
-    // URLSafeなBase64に変換
-    hash = hash.replace("=", "");
-    hash = hash.replace("+", "-");
-    hash = hash.replace("/", "_");
+    private Signature getVerifier()
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException,
+                    UnsupportedEncodingException {
+        String[] idTokenArray = idTokenString.split("\\.");
+        String dataPart = idTokenArray[0] + "." + idTokenArray[1];
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(publicKey);
+        signature.update(dataPart.getBytes("UTF-8"));
 
-    return hash;
-  }
-
+        return signature;
+    }
 }

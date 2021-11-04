@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,18 +28,9 @@ package jp.co.yahoo.yconnect.core.oauth2;
  * OAuth 2.0 Response Type
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class OAuth2ResponseType {
 
-  /**
-   * レスポンスタイプ: code
-   */
-  public static final String CODE = "code";
-
-  /**
-   * レスポンスタイプ: code id_token
-   */
-  public static final String CODE_IDTOKEN = "code id_token";
-
+    /** レスポンスタイプ: code */
+    public static final String CODE = "code";
 }

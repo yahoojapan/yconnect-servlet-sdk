@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -30,123 +30,198 @@ import java.util.ArrayList;
  * IdToken Object Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class IdTokenObject {
 
-  private String type;
+    private String type;
 
-  private String algorithm;
+    private String algorithm;
 
-  private String iss;
+    private String kid;
 
-  private String userId;
+    private String iss;
 
-  private ArrayList<String> aud;
+    private String sub;
 
-  private String nonce;
+    private String ppidSub;
 
-  private long exp;
+    private ArrayList<String> aud;
 
-  private long iat;
+    private String nonce;
 
-  private String signature;
+    private String atHash;
 
-  public IdTokenObject() {
-  }
+    private long exp;
 
-  public IdTokenObject(String type, String algorithm, String iss, String userId,
-      ArrayList<String> aud, String nonce, long exp, long iat, String signature) {
-    setType(type);
-    setAlgorithm(algorithm);
-    setIss(iss);
-    setUserId(userId);
-    setAud(aud);
-    setNonce(nonce);
-    setExp(exp);
-    setIat(iat);
-    setSignature(signature);
-  }
+    private long iat;
 
-  public String getType() {
-    return this.type;
-  }
+    private long authTime;
 
-  public void setType(String type) {
-    this.type = type;
-  }
+    private String signature;
 
-  public String getAlgorithm() {
-    return this.algorithm;
-  }
+    public IdTokenObject() {}
 
-  public void setAlgorithm(String algorithm) {
-    this.algorithm = algorithm;
-  }
+    public IdTokenObject(
+            String type,
+            String algorithm,
+            String kid,
+            String iss,
+            String sub,
+            String ppidSub,
+            ArrayList<String> aud,
+            String nonce,
+            String atHash,
+            long exp,
+            long iat,
+            long authTime,
+            String signature) {
+        setType(type);
+        setAlgorithm(algorithm);
+        setKid(kid);
+        setIss(iss);
+        setSub(sub);
+        setPpidSub(ppidSub);
+        setAud(aud);
+        setNonce(nonce);
+        setAtHash(atHash);
+        setExp(exp);
+        setIat(iat);
+        setAuthTime(authTime);
+        setSignature(signature);
+    }
 
-  public String getIss() {
-    return iss;
-  }
+    public String getType() {
+        return this.type;
+    }
 
-  public void setIss(String iss) {
-    this.iss = iss;
-  }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-  public String getUserId() {
-    return userId;
-  }
+    public String getAlgorithm() {
+        return this.algorithm;
+    }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
-  }
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
+    }
 
-  public ArrayList<String> getAud() {
-    return aud;
-  }
+    public String getKid() {
+        return kid;
+    }
 
-  public void setAud(ArrayList<String> aud) {
-    this.aud = aud;
-  }
+    public void setKid(String kid) {
+        this.kid = kid;
+    }
 
-  public String getNonce() {
-    return nonce;
-  }
+    public String getIss() {
+        return iss;
+    }
 
-  public void setNonce(String nonce) {
-    this.nonce = nonce;
-  }
+    public void setIss(String iss) {
+        this.iss = iss;
+    }
 
-  public long getExp() {
-    return exp;
-  }
+    public String getSub() {
+        return sub;
+    }
 
-  public void setExp(long exp) {
-    this.exp = exp;
-  }
+    public void setSub(String sub) {
+        this.sub = sub;
+    }
 
-  public long getIat() {
-    return iat;
-  }
+    public String getPpidSub() {
+        return ppidSub;
+    }
 
-  public void setIat(long iat) {
-    this.iat = iat;
-  }
+    public void setPpidSub(String ppidSub) {
+        this.ppidSub = ppidSub;
+    }
 
-  public String getSignature() {
-    return this.signature;
-  }
+    public ArrayList<String> getAud() {
+        return aud;
+    }
 
-  public void setSignature(String signature) {
-    this.signature = signature;
-  }
+    public void setAud(ArrayList<String> aud) {
+        this.aud = aud;
+    }
 
-  public String toString() {
-    String json =
-        "{" + "\"iss\":\"" + iss + "\"," + "\"user_id\":\"" + userId + "\"," + "\"aud\":\""
-            + aud.toString() + "\"," + "\"nonce\":\"" + nonce + "\"," + "\"exp\":" + exp + ","
-            + "\"iat\":" + iat +
-            "}";
-    return json;
-  }
+    public String getNonce() {
+        return nonce;
+    }
 
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
+    }
+
+    public String getAtHash() {
+        return atHash;
+    }
+
+    public void setAtHash(String atHash) {
+        this.atHash = atHash;
+    }
+
+    public long getExp() {
+        return exp;
+    }
+
+    public void setExp(long exp) {
+        this.exp = exp;
+    }
+
+    public long getIat() {
+        return iat;
+    }
+
+    public void setIat(long iat) {
+        this.iat = iat;
+    }
+
+    public long getAuthTime() {
+        return authTime;
+    }
+
+    public void setAuthTime(long authTime) {
+        this.authTime = authTime;
+    }
+
+    public String getSignature() {
+        return this.signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String toString() {
+        return "{"
+                + "\"iss\":\""
+                + iss
+                + "\","
+                + "\"sub\":\""
+                + sub
+                + "\","
+                + "\"ppid_sub\":\""
+                + ppidSub
+                + "\","
+                + "\"aud\":\""
+                + aud.toString()
+                + "\","
+                + "\"nonce\":\""
+                + nonce
+                + "\","
+                + "\"at_hash\":"
+                + atHash
+                + ","
+                + "\"exp\":"
+                + exp
+                + ","
+                + "\"iat\":"
+                + iat
+                + ","
+                + "\"auth_time\":"
+                + authTime
+                + "}";
+    }
 }

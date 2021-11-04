@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -27,44 +27,40 @@ package jp.co.yahoo.yconnect.core.http;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * HTTP Parameters Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class HttpParameters extends HashMap<String, String> {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * HttpParameters Constructor.
-   */
-  public HttpParameters() {
-    super();
-  }
-
-  /**
-   * Get all parameters of URL encoded query string.
-   * 
-   * @return query string.
-   */
-  public String toQueryString() {
-    String query = "";
-    String ampersand = "";
-    Iterator<String> iterator = this.keySet().iterator();
-    while (iterator.hasNext()) {
-      String key = iterator.next();
-      try {
-        query += ampersand + key + "=" + URLEncoder.encode(this.get(key), "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-      }
-      ampersand = "&";
+    /** HttpParameters Constructor. */
+    public HttpParameters() {
+        super();
     }
-    return query;
-  }
 
+    /**
+     * Get all parameters of URL encoded query string.
+     *
+     * @return query string.
+     */
+    public String toQueryString() {
+        StringBuilder query = new StringBuilder();
+        String ampersand = "";
+        for (String key : this.keySet()) {
+            try {
+                query.append(ampersand)
+                        .append(key)
+                        .append("=")
+                        .append(URLEncoder.encode(this.get(key), "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            ampersand = "&";
+        }
+        return query.toString();
+    }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,28 +28,18 @@ package jp.co.yahoo.yconnect.core.oidc;
  * OpenID Connect Scope Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class OIDCScope {
 
-  /**
-   * scope: openid
-   */
-  public static final String OPENID = "openid";
+    /** scope: openid */
+    public static final String OPENID = "openid";
 
-  /**
-   * scope: profile
-   */
-  public static final String PROFILE = "profile";
+    /** scope: profile */
+    public static final String PROFILE = "profile";
 
-  /**
-   * scope: email
-   */
-  public static final String EMAIL = "email";
+    /** scope: email */
+    public static final String EMAIL = "email";
 
-  /**
-   * scope: address
-   */
-  public static final String ADDRESS = "address";
-
+    /** scope: address */
+    public static final String ADDRESS = "address";
 }

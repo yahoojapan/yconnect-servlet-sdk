@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,28 +28,21 @@ package jp.co.yahoo.yconnect.core.oidc;
  * OpenID Connect Prompt
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class OIDCPrompt {
 
-  /**
-   * Prompt: login
-   */
-  public static final String LOGIN = "login";
+    /** Prompt: login */
+    public static final String LOGIN = "login";
 
-  /**
-   * Prompt: consent
-   */
-  public static final String CONSENT = "consent";
+    /** Prompt: select_account */
+    public static final String SELECT_ACCOUNT = "select_account";
 
-  /**
-   * Prompt: none
-   */
-  public static final String NONE = "none";
+    /** Prompt: consent */
+    public static final String CONSENT = "consent";
 
-  /**
-   * Prompt: (empty)
-   */
-  public static final String DEFAULT = "";
+    /** Prompt: none */
+    public static final String NONE = "none";
 
+    /** Prompt: (empty) */
+    public static final String DEFAULT = "";
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,22 +28,20 @@ package jp.co.yahoo.yconnect.core.util;
  * String Utility Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class StringUtil {
 
-  public static String implode(String glue, String[] pieces) {
-    String result = "";
-    String delimiter = "";
-    for (String piece : pieces) {
-      result += delimiter + piece;
-      delimiter = glue;
+    public static String implode(String glue, String[] pieces) {
+        StringBuilder result = new StringBuilder();
+        String delimiter = "";
+        for (String piece : pieces) {
+            result.append(delimiter).append(piece);
+            delimiter = glue;
+        }
+        return result.toString();
     }
-    return result;
-  }
 
-  public static String implode(String[] pieces) {
-    return implode(" ", pieces);
-  }
-
+    public static String implode(String[] pieces) {
+        return implode(" ", pieces);
+    }
 }

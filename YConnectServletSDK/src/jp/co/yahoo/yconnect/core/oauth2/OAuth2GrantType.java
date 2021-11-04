@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -28,18 +28,12 @@ package jp.co.yahoo.yconnect.core.oauth2;
  * OAuth 2.0 Grant Type
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class OAuth2GrantType {
 
-  /**
-   * grant_type: authorization_code
-   */
-  public static final String AUTHORIZATION_CODE = "authorization_code";
+    /** grant_type: authorization_code */
+    public static final String AUTHORIZATION_CODE = "authorization_code";
 
-  /**
-   * grant_type: refresh_token
-   */
-  public static final String REFRESH_TOKEN = "refresh_token";
-
+    /** grant_type: refresh_token */
+    public static final String REFRESH_TOKEN = "refresh_token";
 }

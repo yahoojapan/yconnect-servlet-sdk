@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -24,85 +24,82 @@
 
 package jp.co.yahoo.yconnect.core.oauth2;
 
-import java.io.StringReader;
-
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
-
-import org.apache.commons.codec.binary.Base64;
-
-import jp.co.yahoo.yconnect.core.http.HttpHeaders;
 import jp.co.yahoo.yconnect.core.http.HttpParameters;
 import jp.co.yahoo.yconnect.core.http.YHttpClient;
-import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 
 /**
  * Token Client Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class TokenClient extends AbstractTokenClient {
 
-  private final static String TAG = TokenClient.class.getSimpleName();
+    private static final String TAG = TokenClient.class.getSimpleName();
 
-  private YHttpClient client;
+    private final String authorizationCode;
 
-  private String authorizationCode;
+    private final String redirectUri;
 
-  private String redirectUri;
+    private String codeVerifier = null;
 
-  private String idToken;
+    private String idToken;
 
-  public TokenClient(String endpointUrl, String authorizationCode, String redirectUri,
-      String clientId, String clientSecret) {
-    super(endpointUrl, clientId, clientSecret);
-    this.authorizationCode = authorizationCode;
-    this.redirectUri = redirectUri;
-  }
+    public TokenClient(
+            String endpointUrl,
+            String authorizationCode,
+            String redirectUri,
+            String clientId,
+            String clientSecret) {
+        super(endpointUrl, clientId, clientSecret);
+        this.authorizationCode = authorizationCode;
+        this.redirectUri = redirectUri;
+    }
 
-  @Override
-  public void fetch() throws TokenException, Exception {
+    public TokenClient(
+            String endpointUrl,
+            String authorizationCode,
+            String redirectUri,
+            String clientId,
+            String clientSecret,
+            String codeVerifier) {
+        super(endpointUrl, clientId, clientSecret);
+        this.authorizationCode = authorizationCode;
+        this.redirectUri = redirectUri;
+        this.codeVerifier = codeVerifier;
+    }
 
-    HttpParameters parameters = new HttpParameters();
-    parameters.put("grant_type", OAuth2GrantType.AUTHORIZATION_CODE);
-    parameters.put("code", authorizationCode);
-    parameters.put("redirect_uri", redirectUri);
+    /**
+     * トークン取得リクエストをします
+     *
+     * @throws TokenException レスポンスにエラーが含まれているときに発生
+     */
+    @Override
+    public void fetch() throws TokenException {
 
-    String credential = clientId + ":" + clientSecret;
-    String basic = new String(Base64.encodeBase64(credential.getBytes()));
+        HttpParameters parameters = new HttpParameters();
+        parameters.put("grant_type", OAuth2GrantType.AUTHORIZATION_CODE);
+        parameters.put("code", authorizationCode);
+        parameters.put("redirect_uri", redirectUri);
 
-    HttpHeaders requestHeaders = new HttpHeaders();
-    requestHeaders.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-    requestHeaders.put("Authorization", "Basic " + basic);
+        if (codeVerifier != null) {
+            parameters.put("code_verifier", codeVerifier);
+        }
 
-    client = new YHttpClient();
-    client.requestPost(endpointUrl, parameters, requestHeaders);
+        JsonObject jsonObject = request(parameters);
 
-    YConnectLogger.debug(TAG, client.getResponseHeaders().toString());
-    YConnectLogger.debug(TAG, client.getResponseBody().toString());
+        String accessTokenString = jsonObject.getString("access_token");
+        long expiresIn = jsonObject.getJsonNumber("expires_in").longValue();
+        String refreshToken = jsonObject.getString("refresh_token");
+        accessToken = new BearerToken(accessTokenString, expiresIn, refreshToken);
+        idToken = jsonObject.getString("id_token");
+    }
 
-    String json = client.getResponseBody();
-    JsonReader jsonReader = Json.createReader(new StringReader(json));
+    public String getIdToken() {
+        return idToken;
+    }
 
-    JsonObject jsonObject = jsonReader.readObject();
-    jsonReader.close();
-
-    int statusCode = client.getStatusCode();
-
-    checkErrorResponse(statusCode, jsonObject);
-
-    String accessTokenString = (String) jsonObject.getString("access_token");
-    long expiresIn = Long.parseLong((String) jsonObject.getString("expires_in"));
-    String refreshToken = (String) jsonObject.getString("refresh_token");
-    accessToken = new BearerToken(accessTokenString, expiresIn, refreshToken);
-    idToken = (String) jsonObject.getString("id_token");
-
-  }
-
-  public String getIdToken() {
-    return idToken;
-  }
-
+    protected YHttpClient getYHttpClient() {
+        return new YHttpClient();
+    }
 }

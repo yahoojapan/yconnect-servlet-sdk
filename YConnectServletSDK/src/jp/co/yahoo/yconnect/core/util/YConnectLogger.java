@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
@@ -31,41 +31,39 @@ import org.apache.log4j.xml.DOMConfigurator;
  * YConnect Logger Class
  *
  * @author Copyright (C) 2016 Yahoo Japan Corporation. All Rights Reserved.
- *
  */
 public class YConnectLogger {
 
-  private static Logger log = Logger.getLogger(YConnectLogger.class.getName());
+    private static final Logger log = Logger.getLogger(YConnectLogger.class.getName());
 
-  private static String CONF_FILE = "yconnect_log_conf.xml";
+    private static String CONF_FILE = "yconnect_log_conf.xml";
 
-  public static void debug(Object object, String message) {
-    DOMConfigurator.configure(CONF_FILE);
-    log.debug(message + " (" + object.getClass().getName() + ")");
-  }
+    public static void debug(Object object, String message) {
+        DOMConfigurator.configure(CONF_FILE);
+        log.debug(message + " (" + object.getClass().getName() + ")");
+    }
 
-  public static void info(Object object, String message) {
-    DOMConfigurator.configure(CONF_FILE);
-    log.info(message + " (" + object.getClass().getName() + ")");
-  }
+    public static void info(Object object, String message) {
+        DOMConfigurator.configure(CONF_FILE);
+        log.info(message + " (" + object.getClass().getName() + ")");
+    }
 
-  public static void warn(Object object, String message) {
-    DOMConfigurator.configure(CONF_FILE);
-    log.warn(message + " (" + object.getClass().getName() + ")");
-  }
+    public static void warn(Object object, String message) {
+        DOMConfigurator.configure(CONF_FILE);
+        log.warn(message + " (" + object.getClass().getName() + ")");
+    }
 
-  public static void error(Object object, String message) {
-    DOMConfigurator.configure(CONF_FILE);
-    log.error(message + " (" + object.getClass().getName() + ")");
-  }
+    public static void error(Object object, String message) {
+        DOMConfigurator.configure(CONF_FILE);
+        log.error(message + " (" + object.getClass().getName() + ")");
+    }
 
-  public static void fatal(Object object, String message) {
-    DOMConfigurator.configure(CONF_FILE);
-    log.fatal(message + " (" + object.getClass().getName() + ")");
-  }
+    public static void fatal(Object object, String message) {
+        DOMConfigurator.configure(CONF_FILE);
+        log.fatal(message + " (" + object.getClass().getName() + ")");
+    }
 
-  public static void setFilePath(String path) {
-    YConnectLogger.CONF_FILE = path;
-  }
-
+    public static void setFilePath(String path) {
+        YConnectLogger.CONF_FILE = path;
+    }
 }
