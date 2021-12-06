@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
+ * © Yahoo Japan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ import jp.co.yahoo.yconnect.core.util.YConnectLogger;
 /**
  * Client Callback URI Parser Class
  *
- * @author Copyright (C) 2021 Yahoo Japan Corporation. All Rights Reserved.
+ * @author © Yahoo Japan
  */
 public class ClientCallbackUriParser {
 
