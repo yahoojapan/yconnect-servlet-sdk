@@ -19,7 +19,7 @@ https://developer.yahoo.co.jp/yconnect/v2/java_sdk/
 詳しくは [LICENSE](https://github.com/yahoojapan/yconnect-servlet-sdk/blob/master/LICENSE) をご覧ください。
 
 ### Version
-3.0.0
+3.0.1
 
 ### Pull request に関して
 現在、Pull requestの受け付け準備中につき、Pull requestを受け付けることができません。  
